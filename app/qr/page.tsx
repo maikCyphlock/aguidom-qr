@@ -2,7 +2,7 @@ import Client from "./client";
 import { db } from "@/lib/db/index";
 import { clubs, users } from "@/lib/db/schema";
 import { redirect } from "next/navigation";
-import { eq, and, isNotNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { createClient, SupabaseClient } from "@/lib/supabase/server";
 
 import { pipe, Exit, Effect } from "effect";
@@ -183,6 +183,7 @@ export default async function Page() {
 								stroke="currentColor"
 								viewBox="0 0 24 24"
 								xmlns="http://www.w3.org/2000/svg"
+								aria-hidden="true"
 							>
 								<path
 									strokeLinecap="round"
@@ -202,7 +203,7 @@ export default async function Page() {
 						<p className="text-sm text-gray-500 text-center mb-4">
 							Si el problema persiste, por favor contacta al soporte técnico.
 						</p>
-						<button className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+						<button className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" type="button">
 							Reintentar
 						</button>
 					</div>

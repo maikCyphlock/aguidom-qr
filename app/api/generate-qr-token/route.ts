@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import { db } from "@/lib/db/index";
 import { users, qrTokens } from "@/lib/db/schema";

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { jwtVerify, JWTPayload } from "jose";
 import { z } from "zod";
 import { db } from "@/lib/db/index";

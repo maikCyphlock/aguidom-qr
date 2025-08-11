@@ -3,7 +3,7 @@ import { createClient, SupabaseClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 /** Extrae mensaje raíz de errores anidados (defensivo para logs/inspección) */
 function getRootErrorMessage(err: unknown): string | undefined {

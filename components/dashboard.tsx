@@ -1,6 +1,6 @@
 // components/dashboard.tsx
 
-import React from "react";
+import type React from "react";
 import {
 	Sidebar,
 	SidebarProvider,
