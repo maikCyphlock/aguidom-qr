@@ -1,51 +1,205 @@
-import { DeployButton } from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
-import { Hero } from "@/components/hero";
-import { ThemeSwitcher } from "@/components/theme-switcher";
-import { ConnectSupabaseSteps } from "@/components/tutorial/connect-supabase-steps";
-import { SignUpUserSteps } from "@/components/tutorial/sign-up-user-steps";
-import { hasEnvVars } from "@/lib/utils";
-import Link from "next/link";
+
+// app/page.tsx
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { CheckCircle, QrCode, Users } from "lucide-react"
+
 
 export default function Home() {
-  return (
-    <main className="min-h-screen flex flex-col items-center">
-      <div className="flex-1 w-full flex flex-col gap-20 items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>Next.js Supabase Starter</Link>
-              <div className="flex items-center gap-2">
-                <DeployButton />
-              </div>
-            </div>
-            {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
-          </div>
-        </nav>
-        <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
-          <Hero />
-          <main className="flex-1 flex flex-col gap-6 px-4">
-            <h2 className="font-medium text-xl mb-4">Next steps</h2>
-            {hasEnvVars ? <SignUpUserSteps /> : <ConnectSupabaseSteps />}
-          </main>
-        </div>
+ 
+  const logoSource =  'clubAguidom.png' 
 
-        <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-          <p>
-            Powered by{" "}
-            <a
-              href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-              target="_blank"
-              className="font-bold hover:underline"
-              rel="noreferrer"
-            >
-              Supabase
-            </a>
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Header */}
+      <header className="container mx-auto px-4 py-6 flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <img 
+            src={logoSource} 
+            className="h-16 w-auto" 
+            alt="Club Aguidom Logo"
+        
+          />
+        </div>
+        <nav className="hidden md:flex space-x-8">
+          <a href="#features" className="hover:underline">
+            Características
+          </a>
+          <a href="#clubs" className="hover:underline">
+            Clubes
+          </a>
+          <a href="#contact" className="hover:underline">
+            Contacto
+          </a>
+        </nav>
+        <Button variant="outline" >
+          Acceder
+        </Button>
+      </header>
+
+      <main>
+        {/* Hero Section */}
+        <section className="container mx-auto px-4 py-16 md:py-24 text-center">
+          <Badge variant="outline" >
+            Sistema Oficial de Asistencias
+          </Badge>
+          <h1 className="text-4xl md:text-6xl font-bold max-w-3xl mx-auto mb-6">
+            Gestión de Asistencias por Código QR para Clubes
+          </h1>
+          <p className="text-lg max-w-2xl mx-auto mb-10">
+            Registro eficiente y seguro de asistencias en el estadio mediante códigos QR. Control
+            total de miembros por clubes afiliados al Club Aguidom.
           </p>
-          <ThemeSwitcher />
-        </footer>
-      </div>
-    </main>
-  );
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Button className="">
+              Comenzar ahora
+            </Button>
+            <Button variant="outline" className="">Ver demo</Button>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section
+          id="features"
+          className="container mx-auto px-4 py-16"
+        >
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">¿Cómo funciona?</h2>
+            <p className="max-w-2xl mx-auto">
+              Un sistema simple y eficaz para gestionar el acceso al estadio
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="">
+              <CardHeader>
+                <QrCode className="w-10 h-10 mb-4 text-foreground" />
+                <CardTitle>Generación de QR</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>
+                  Cada miembro recibe un código QR único vinculado a su perfil y club
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="">
+              <CardHeader>
+                <CheckCircle className="w-10 h-10 mb-4 text-foreground" />
+                <CardTitle>Registro de Asistencia</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>
+                  Escaneo rápido en puertas de acceso para registrar entrada al estadio
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="">
+              <CardHeader>
+                <Users className="w-10 h-10 mb-4 text-foreground" />
+                <CardTitle>Gestión de Miembros</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>
+                  Panel administrativo para gestionar miembros por clubes afiliados
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Clubs Section */}
+        <section id="clubs" className="container mx-auto px-4 py-16">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">Clubes Afiliados</h2>
+            <p className="max-w-2xl mx-auto">
+              Gestiona múltiples clubes con acceso centralizado al sistema
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+              <div key={item} className="flex flex-col items-center">
+                <div className="w-16 h-16 bg-muted rounded-full mb-4 flex items-center justify-center">
+                  <span className="font-bold text-foreground">{item}</span>
+                </div>
+                <span className="font-medium text-foreground">Club {item}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="container mx-auto px-4 py-16 text-center">
+          <Card className=" max-w-3xl mx-auto">
+            <CardHeader>
+              <CardTitle className="text-2xl">¿Listo para comenzar?</CardTitle>
+              <CardDescription>
+                Únete al sistema oficial de asistencias del Club Aguidom
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <Button >
+                  Registrar mi club
+                </Button>
+                <Button
+                  variant="outline"
+                 
+                >
+                  Solicitar demo
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer id="contact" className="border-t border-border py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="mb-6 md:mb-0">
+              <div className="flex items-center space-x-2">
+                <img 
+                  src={logoSource} 
+                  className="h-16 w-auto" 
+                  alt="Club Aguidom Logo"
+               
+                />
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Sistema oficial de registro de asistencias
+              </p>
+            </div>
+            <div className="flex space-x-6">
+              <a href="#" className="hover:text-foreground">
+                Términos
+              </a>
+              <a href="#" className="hover:text-foreground">
+                Privacidad
+              </a>
+              <a href="#" className="hover:text-foreground">
+                Contacto
+              </a>
+            </div>
+          </div>
+          <Separator className="my-8 bg-border" />
+          <div className="text-center text-muted-foreground text-sm">
+            {new Date().getFullYear()} Club Aguidom. Todos los derechos reservados.
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
 }
