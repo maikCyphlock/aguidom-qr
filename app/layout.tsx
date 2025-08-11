@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-import { ThemeProvider } from "next-themes";
-import "./globals.css";
+import { Inter  } from "next/font/google";
 
-import AppBar from "@/components/appbar";
+import "./globals.css";
+import { ErrorCatcher } from "@/components/ErrorCatcher";
+import AppBar from "@/components/appBar";
+import { Toaster } from "sonner";
+
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "Podium",
+  description: "Aguidom QR Scanner",
 };
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const InterSans = Inter({
+  variable: "--font-inter-sans",
   display: "swap",
   subsets: ["latin"],
 });
@@ -27,16 +29,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          forcedTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
+      <body className={`${InterSans.className} antialiased min-h-screen`}>
           <AppBar />
           {children}
-        </ThemeProvider>
+          <ErrorCatcher/>
+          <Toaster/>
       </body>
     </html>
   );

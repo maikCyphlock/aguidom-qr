@@ -11,10 +11,12 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { CheckCircle, QrCode, Users } from "lucide-react"
+import { db } from "@/lib/db"
+import { clubs } from "@/lib/db/schema"
 
 
-export default function Home() {
- 
+export default async function Home() {
+  const Clubs  = await db. select().from(clubs);
   const logoSource =  'clubAguidom.png' 
 
 
@@ -41,8 +43,10 @@ export default function Home() {
             Contacto
           </a>
         </nav>
-        <Button variant="outline" >
-          Acceder
+        <Button asChild variant="outline" >
+          <a href="/auth/login">
+            Acceder
+          </a>
         </Button>
       </header>
 
@@ -126,14 +130,14 @@ export default function Home() {
               Gestiona múltiples clubes con acceso centralizado al sistema
             </p>
           </div>
-
+         
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-              <div key={item} className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-muted rounded-full mb-4 flex items-center justify-center">
-                  <span className="font-bold text-foreground">{item}</span>
+            {Clubs.map((club) => (
+              <div key={club.id} className="flex flex-col items-center">
+                <div className="w-32 h-32 bg-muted rounded-full mb-4 flex items-center justify-center">
+                  <span className="font-bold text-foreground">{club.name}</span>
                 </div>
-                <span className="font-medium text-foreground">Club {item}</span>
+                <span className="font-medium text-foreground">{club.location || "Sin ubicación"}</span>
               </div>
             ))}
           </div>

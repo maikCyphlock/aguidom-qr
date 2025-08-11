@@ -1,18 +1,38 @@
-// src/components/ui/bottom-navigation.tsx
+// components/appBar.tsx
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { bottomNavRoutes } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
+import { createClient } from "@/lib/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import type { User } from "@supabase/supabase-js";
+
+// Se crea el cliente una sola vez para que sea persistente en el ciclo de vida del componente
+const supabase = createClient();
 
 export default function AppBar() {
   const pathname = usePathname();
   const router = useRouter();
   const navRef = useRef<HTMLDivElement>(null);
+  const [user, setUser] = useState<User | null>(null);
 
-  // Animación al montar
+  useEffect(() => {
+    // Escucha todos los cambios en el estado de autenticación.
+    // Este listener se dispara una vez inmediatamente con el estado actual de la sesión.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Evento de autenticación:', event); // Para depuración, puedes ver qué evento se dispara
+      setUser(session?.user ?? null);
+    });
+
+    // Limpieza del listener al desmontar el componente
+    return () => subscription.unsubscribe();
+  }, []);
+
   useEffect(() => {
     if (navRef.current) {
       gsap.fromTo(
@@ -40,7 +60,7 @@ export default function AppBar() {
       ref={navRef}
       className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
     >
-      <nav className="flex gap-4 px-4 py-2 bg-white/80 backdrop-blur rounded-2xl shadow-lg border border-gray-200">
+      <nav className="flex gap-4 px-4 py-2 bg-white/80 backdrop-blur rounded-2xl shadow-lg border border-gray-200 items-center">
         {bottomNavRoutes.map(({ label, path, icon: Icon }, index) => {
           const isActive = pathname === path;
 
@@ -51,7 +71,7 @@ export default function AppBar() {
               className={cn(
                 "relative flex items-center gap-2 px-3 py-2 rounded-xl transition-colors",
                 isActive
-                  ? "bg-black text-white"
+                  ? ""
                   : "text-muted-foreground hover:bg-muted"
               )}
               onMouseEnter={(e) => {
@@ -72,7 +92,7 @@ export default function AppBar() {
               <Icon className="h-5 w-5" />
               {isActive && (
                 <span
-                  className="text-sm font-medium whitespace-nowrap"
+                  className="text-sm font-bold whitespace-nowrap"
                   style={{ overflow: "hidden" }}
                 >
                   {label}
@@ -81,6 +101,18 @@ export default function AppBar() {
             </button>
           );
         })}
+        {user && (
+          <button onClick={() => router.push('/dashboard')}>
+            <Avatar>
+              <AvatarImage src={user.user_metadata.avatar_url} />
+              <AvatarFallback>
+                {user.user_metadata.full_name
+                  ? user.user_metadata.full_name[0]
+                  : user.email?.[0].toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </button>
+        )}
       </nav>
     </div>
   );

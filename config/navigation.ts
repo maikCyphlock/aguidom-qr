@@ -14,12 +14,13 @@ export const bottomNavRoutes = [
   },
   {
     label: "Verificar",
-    path: "/qrv",
+    path: "/qr/verify",
     icon: ShieldCheck,
   },
   {
-    label: "Asistencias",
-    path: "/attendance",
+    label: "Perfil",
+    path: "/dashboard",
     icon: UserCheck,
   },
+  
 ];
