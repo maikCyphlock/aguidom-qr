@@ -27,7 +27,7 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUserResult> {
 
     return { 
       shouldRedirect: false, 
-      claims: user.user_metadata, 
+      claims: user, 
       userFromDb 
     };
   } catch (error) {
