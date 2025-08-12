@@ -20,7 +20,8 @@ export default async function Page() {
 
     const user = await db.select().from(users).where(eq(users.email, email)).get();
     if (!user) {
-        throw new Error("No se encontró el usuario en la base de datos");
+        console.error("No se encontró el usuario en la base de datos");
+        return redirect("/auth/login");
     }
 
     if (user.role !== "admin") {
@@ -36,16 +37,36 @@ export default async function Page() {
     }
 
     if (!user.clubId) {
-        throw new Error(
+        console.error(
             "Tu cuenta no está asociada a ningún club. Por favor, contacta al administrador.",
         );
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <div className="bg-white rounded-lg p-8 shadow">
+                    <h2 className="text-2xl text-center">
+                        Tu cuenta no está asociada a ningún club. Por favor, contacta al administrador.
+                    </h2>
+                </div>
+            </div>
+        )
     }
 
     const club = await db.select().from(clubs).where(eq(clubs.id, user.clubId)).get();
     if (!club) {
-        throw new Error(
+        console.error(
             "No se pudo encontrar la información del club. Por favor, inténtalo de nuevo más tarde.",
         );
+
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <div className="bg-white rounded-lg p-8 shadow">
+                    <h2 className="text-2xl text-center">
+                        No se pudo encontrar la información del club. Por favor, inténtalo de nuevo más tarde.
+                    </h2>
+                </div>
+            </div>
+
+        )
     }
 
     return <Client club={club} />;
