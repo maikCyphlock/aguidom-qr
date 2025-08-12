@@ -1,9 +1,9 @@
 export interface QRVerificationRequest {
-  token: string;
+	token: string;
 }
 
 export interface QRVerificationResponse {
-  saved: boolean;
-  message?: string;
-  error?: string;
+	saved: boolean;
+	message?: string;
+	error?: string;
 }

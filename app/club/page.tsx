@@ -322,12 +322,19 @@ export default function AguidomAttendanceSystem() {
 													<p className="font-medium text-gray-900">
 														{record.userName ?? "Desconocido"}
 													</p>
-													<p className="text-sm text-gray-500">{record.clubName ?? ""}</p>
+													<p className="text-sm text-gray-500">
+														{record.clubName ?? ""}
+													</p>
 												</div>
 											</div>
 											<div className="text-right">
 												<p className="text-sm font-medium text-gray-900">
-													{new Date(Number(record.scanTime) * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+													{new Date(
+														Number(record.scanTime) * 1000,
+													).toLocaleTimeString([], {
+														hour: "2-digit",
+														minute: "2-digit",
+													})}
 												</p>
 												<p className="text-xs text-green-600">Presente</p>
 											</div>
@@ -449,12 +456,19 @@ export default function AguidomAttendanceSystem() {
 													<p className="font-medium text-gray-900">
 														{record.userName ?? "Desconocido"}
 													</p>
-													<p className="text-sm text-gray-500">{record.clubName ?? ""}</p>
+													<p className="text-sm text-gray-500">
+														{record.clubName ?? ""}
+													</p>
 												</div>
 											</div>
 											<div className="text-right">
 												<p className="font-medium text-gray-900">
-													{new Date(Number(record.scanTime) * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+													{new Date(
+														Number(record.scanTime) * 1000,
+													).toLocaleTimeString([], {
+														hour: "2-digit",
+														minute: "2-digit",
+													})}
 												</p>
 												<p className="text-sm text-green-600">
 													Acceso autorizado
