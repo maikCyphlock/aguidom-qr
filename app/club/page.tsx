@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
 	Card,
 	CardContent,
@@ -22,7 +22,6 @@ import {
 	Calendar,
 	CheckCircle,
 	UserCheck,
-	Plus,
 	Search,
 	Filter,
 } from "lucide-react";
@@ -34,43 +33,36 @@ export default function AguidomAttendanceSystem() {
 	const [showScanDialog, setShowScanDialog] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 
+	type AttendanceItem = {
+		attendanceId: string;
+		userName: string | null;
+		scanTime: number | string;
+		clubName?: string;
+	};
+	const [attendances, setAttendances] = useState<AttendanceItem[]>([]);
+	useEffect(() => {
+		let cancelled = false;
+		(async () => {
+			try {
+				const res = await fetch("/api/attendance", { cache: "no-store" });
+				if (!res.ok) return;
+				const data = (await res.json()) as AttendanceItem[];
+				if (!cancelled) setAttendances(data);
+			} catch (e) {
+				console.error("Failed to load attendances", e);
+			}
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
 	// Datos de ejemplo
 	const clubs = [
 		{ id: "1", name: "Club Central", members: 145, present: 89 },
 		{ id: "2", name: "Club Norte", members: 203, present: 156 },
 		{ id: "3", name: "Club Sur", members: 178, present: 134 },
 		{ id: "4", name: "Club Este", members: 167, present: 98 },
-	];
-
-	const recentAttendance = [
-		{
-			id: "1",
-			member: "Juan Pérez",
-			club: "Club Central",
-			time: "14:32",
-			status: "Presente",
-		},
-		{
-			id: "2",
-			member: "María García",
-			club: "Club Norte",
-			time: "14:28",
-			status: "Presente",
-		},
-		{
-			id: "3",
-			member: "Carlos López",
-			club: "Club Sur",
-			time: "14:25",
-			status: "Presente",
-		},
-		{
-			id: "4",
-			member: "Ana Martín",
-			club: "Club Este",
-			time: "14:20",
-			status: "Presente",
-		},
 	];
 
 	const members = [
@@ -179,6 +171,7 @@ export default function AguidomAttendanceSystem() {
 										? "border-black text-black"
 										: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
 								}`}
+								type="button"
 							>
 								<Icon className="w-4 h-4" />
 								<span>{label}</span>
@@ -301,6 +294,7 @@ export default function AguidomAttendanceSystem() {
 								<button
 									onClick={handleQRScan}
 									className="bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors"
+									type="button"
 								>
 									Iniciar Escaneo
 								</button>
@@ -317,27 +311,25 @@ export default function AguidomAttendanceSystem() {
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-3">
-									{recentAttendance.map((record) => (
+									{attendances.slice(0, 5).map((record) => (
 										<div
-											key={record.id}
+											key={record.attendanceId}
 											className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
 										>
 											<div className="flex items-center space-x-3">
 												<CheckCircle className="w-5 h-5 text-green-500" />
 												<div>
 													<p className="font-medium text-gray-900">
-														{record.member}
+														{record.userName ?? "Desconocido"}
 													</p>
-													<p className="text-sm text-gray-500">{record.club}</p>
+													<p className="text-sm text-gray-500">{record.clubName ?? ""}</p>
 												</div>
 											</div>
 											<div className="text-right">
 												<p className="text-sm font-medium text-gray-900">
-													{record.time}
+													{new Date(Number(record.scanTime) * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
 												</p>
-												<p className="text-xs text-green-600">
-													{record.status}
-												</p>
+												<p className="text-xs text-green-600">Presente</p>
 											</div>
 										</div>
 									))}
@@ -446,23 +438,23 @@ export default function AguidomAttendanceSystem() {
 							</CardHeader>
 							<CardContent>
 								<div className="space-y-4">
-									{recentAttendance.map((record) => (
+									{attendances.map((record) => (
 										<div
-											key={record.id}
+											key={record.attendanceId}
 											className="flex items-center justify-between p-4 border rounded-lg"
 										>
 											<div className="flex items-center space-x-3">
 												<CheckCircle className="w-6 h-6 text-green-500" />
 												<div>
 													<p className="font-medium text-gray-900">
-														{record.member}
+														{record.userName ?? "Desconocido"}
 													</p>
-													<p className="text-sm text-gray-500">{record.club}</p>
+													<p className="text-sm text-gray-500">{record.clubName ?? ""}</p>
 												</div>
 											</div>
 											<div className="text-right">
 												<p className="font-medium text-gray-900">
-													{record.time}
+													{new Date(Number(record.scanTime) * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
 												</p>
 												<p className="text-sm text-green-600">
 													Acceso autorizado
