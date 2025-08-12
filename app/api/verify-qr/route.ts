@@ -4,8 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db/index";
 import { users, qrTokens } from "@/lib/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
-import { Effect, Cause } from "effect";
-import { createClient, SupabaseClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // Define un esquema de Zod para el payload del JWT
 const JWTPayloadSchema = z.object({
@@ -14,26 +13,18 @@ const JWTPayloadSchema = z.object({
 });
 
 // Define la lógica principal de la ruta como un Effect.
-const handleQrVerification = (request: NextRequest) =>
-	Effect.gen(function* ($) {
-		console.log("[QR VERIFY] ▶️ Nueva petición recibida");
+const handleQrVerification = async (request: NextRequest) => {
+	console.log("[QR VERIFY] ▶️ Nueva petición recibida");
 
-		// Obtenemos el cliente de Supabase de la capa de Effect
-		const supabase = yield* $(SupabaseClient);
+	try {
+		// Obtenemos el cliente de Supabase
+		const supabase = await createSupabaseServerClient();
 
 		// Obtenemos los claims del usuario
-		const { data: sessionData, error: sessionError } = yield* $(
-			Effect.tryPromise({
-				try: () => supabase.auth.getClaims(),
-				catch: (err) => {
-					console.error("Error al obtener los claims de Supabase:", err);
-					return new Error("Error de Supabase");
-				},
-			}),
-		);
+		const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
 		// Validamos el email del usuario
-		const email = sessionData?.claims?.email;
+		const email = sessionData?.session?.user?.email;
 		if (!email) {
 			return NextResponse.json(
 				{ error: "Unauthorized: no email found in session" },
@@ -54,12 +45,7 @@ const handleQrVerification = (request: NextRequest) =>
 		}
 
 		// Parseamos el cuerpo de la petición de manera segura
-		const body = yield* $(
-			Effect.tryPromise({
-				try: () => request.json(),
-				catch: () => new Error("JSON inválido"),
-			}),
-		);
+		const body = await request.json();
 		console.log("[QR VERIFY] 📨 Body recibido:", body);
 
 		// Validamos el cuerpo con Zod
@@ -69,45 +55,40 @@ const handleQrVerification = (request: NextRequest) =>
 		// Verificamos el JWT
 		console.log("[QR VERIFY] 🔐 Verificando JWT...");
 		const secret = new TextEncoder().encode(SECRET_KEY);
-		const { payload } = yield* $(
-			Effect.tryPromise({
-				try: () =>
-					jwtVerify(token, secret, {
-						algorithms: ["HS256"],
-						clockTolerance: 15,
-					}),
-				catch: (err) => {
-					console.error("Error al verificar JWT:", err);
-					if ((err as any).code === "ERR_JWT_EXPIRED") {
-						return new Error("Token expirado");
-					}
-					if ((err as any).code === "ERR_JWS_SIGNATURE_VERIFICATION_FAILED") {
-						return new Error("Firma del token inválida");
-					}
-					return new Error("Token inválido");
-				},
-			}),
-		);
+		let payload: JWTPayload;
+		try {
+			const { payload: verifiedPayload } = await jwtVerify(token, secret, {
+				algorithms: ["HS256"],
+				clockTolerance: 15,
+			});
+			payload = verifiedPayload;
+		} catch (err: any) {
+			console.error("Error al verificar JWT:", err);
+			let errorMessage = "Token inválido";
+			let status = 400;
+			if (err.code === "ERR_JWT_EXPIRED") {
+				errorMessage = "El token ha expirado.";
+				status = 401;
+			} else if (err.code === "ERR_JWS_SIGNATURE_VERIFICATION_FAILED") {
+				errorMessage = "La firma del token es inválida.";
+				status = 401;
+			}
+			return NextResponse.json({ saved: false, error: errorMessage }, { status });
+		}
 		console.log("[QR VERIFY] ✅ Firma verificada. Payload:", payload);
 
 		const parsedPayload = JWTPayloadSchema.parse(payload);
 		// Buscar usuario admin con ese email y clubId
-		const usersResult = yield* $(
-			Effect.tryPromise({
-				try: () =>
-					db
-						.select()
-						.from(users)
-						.where(
-							and(
-								eq(users.email, email),
-								eq(users.clubId, parsedPayload.clubId),
-							),
-						)
-						.limit(1),
-				catch: () => new Error("Error al buscar en la base de datos"),
-			}),
-		);
+		const usersResult = await db
+			.select()
+			.from(users)
+			.where(
+				and(
+					eq(users.email, email),
+					eq(users.clubId, parsedPayload.clubId),
+				),
+			)
+			.limit(1);
 
 		if (usersResult.length === 0) {
 			console.warn("[QR VERIFY] ⚠️ Usuario no encontrado");
@@ -119,16 +100,10 @@ const handleQrVerification = (request: NextRequest) =>
 
 		// Buscar el token en la base de datos
 		console.log("[QR VERIFY] 🔎 Buscando token en la base de datos...");
-		const existing = yield* $(
-			Effect.tryPromise({
-				try: () =>
-					db
-						.select()
-						.from(qrTokens)
-						.where(and(eq(qrTokens.token, token), isNull(qrTokens.scannedAt))),
-				catch: () => new Error("Error al buscar en la base de datos"),
-			}),
-		);
+		const existing = await db
+			.select()
+			.from(qrTokens)
+			.where(and(eq(qrTokens.token, token), isNull(qrTokens.scannedAt)));
 
 		if (existing.length === 0) {
 			console.warn("[QR VERIFY] ⚠️ Token ya fue escaneado o no existe");
@@ -142,69 +117,49 @@ const handleQrVerification = (request: NextRequest) =>
 		console.log(
 			"[QR VERIFY] 🟢 Token válido. Procediendo a marcar como escaneado...",
 		);
-		yield* $(
-			Effect.tryPromise({
-				try: () =>
-					db
-						.update(qrTokens)
-						.set({
-							scannedAt: Math.floor(Date.now() / 1000),
-							userId: usersResult[0].userId,
-						})
-						.where(eq(qrTokens.token, token)),
-				catch: (err) => {
-					console.error("Error al actualizar token:", err);
-					return new Error("Error al actualizar en la base de datos");
-				},
-			}),
-		);
+		await db
+			.update(qrTokens)
+			.set({
+				scannedAt: Math.floor(Date.now() / 1000),
+				userId: usersResult[0].userId,
+			})
+			.where(eq(qrTokens.token, token));
 
 		console.log("[QR VERIFY] ✅ Token actualizado exitosamente");
 		return NextResponse.json({
 			saved: true,
 			message: `Bienvenido ${usersResult[0]?.name}, has sido verificado y escaneado correctamente`,
 		});
-	}).pipe(
-		// Mapeamos los errores del Effect a respuestas de Next.js
-		Effect.catchTag("Error", (e) => {
-			console.error("[QR VERIFY] ❌ Error en el proceso:", e);
-			let status = 500;
-			let errorMessage = "Error interno del servidor";
+	} catch (e: any) {
+		console.error("[QR VERIFY] ❌ Error en el proceso:", e);
+		let status = 500;
+		let errorMessage = "Error interno del servidor";
 
-			if (e.message.includes("Token inválido")) {
-				status = 400;
-				errorMessage =
-					"El token no es un JWT válido o tiene un formato incorrecto.";
-			} else if (e.message.includes("Token expirado")) {
-				status = 401;
-				errorMessage = "El token ha expirado.";
-			} else if (e.message.includes("Firma del token inválida")) {
-				status = 401;
-				errorMessage = "La firma del token es inválida.";
-			} else if (e.message.includes("Configuración inválida")) {
-				status = 500;
-				errorMessage = e.message;
-			}
+		if (e.message.includes("Token inválido")) {
+			status = 400;
+			errorMessage =
+				"El token no es un JWT válido o tiene un formato incorrecto.";
+		} else if (e.message.includes("Token expirado")) {
+			status = 401;
+			errorMessage = "El token ha expirado.";
+		} else if (e.message.includes("Firma del token inválida")) {
+			status = 401;
+			errorMessage = "La firma del token es inválida.";
+		} else if (e.message.includes("Configuración inválida")) {
+			status = 500;
+			errorMessage = e.message;
+		} else if (e.name === "ZodError") {
+			status = 400;
+			errorMessage = `Error de validación: ${e.errors[0].message}`;
+		}
 
-			return Effect.succeed(
-				NextResponse.json({ saved: false, error: errorMessage }, { status }),
-			);
-		}),
-		Effect.catchAll(() =>
-			Effect.succeed(
-				NextResponse.json(
-					{ saved: false, error: "Error interno del servidor" },
-					{ status: 500 },
-				),
-			),
-		),
-		// Proporcionamos la capa del cliente de Supabase al programa
-		Effect.provide(createClient),
-	);
+		return NextResponse.json({ saved: false, error: errorMessage }, { status });
+	}
+};
 
 // Exportamos la función POST que ejecuta el Effect
 export async function POST(request: NextRequest) {
-	return await Effect.runPromise(handleQrVerification(request));
+	return await handleQrVerification(request);
 }
 
 // Validación del body para Zod

@@ -1,15 +1,13 @@
-import { createClient, SupabaseClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { db } from "@/lib/db/index";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { Effect } from "effect";
 
 // Definimos la lógica completa de la ruta de API como un Effect.
 // Esto nos permite usar la inyección de dependencias y el manejo de errores de Effect-TS.
-const handleAuthCallback = (request: NextRequest) =>
-	Effect.gen(function* () {
+const handleAuthCallback = async (request: NextRequest) => {
 		const requestUrl = new URL(request.url);
 		const code = requestUrl.searchParams.get("code");
 		const next = requestUrl.searchParams.get("next") ?? "/";
@@ -22,12 +20,10 @@ const handleAuthCallback = (request: NextRequest) =>
 
 		// Obtenemos el cliente de Supabase usando el tag de SupabaseClient
 		// que se proporcionará a este Effect.
-		const supabase = yield* SupabaseClient;
+		const supabase = await createSupabaseServerClient();
 
 		// Usamos Effect.promise para manejar la promesa de Supabase de manera segura.
-		const { data, error } = yield* Effect.promise(() =>
-			supabase.auth.exchangeCodeForSession(code),
-		);
+		const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
 		if (error) {
 			// Si hay un error de Supabase, devolvemos un error.
@@ -39,21 +35,17 @@ const handleAuthCallback = (request: NextRequest) =>
 
 		// Consultar si el usuario ya existe.
 		// Usamos Effect.promise para envolver la llamada asíncrona a la base de datos.
-		const existingUser = yield* Effect.promise(() =>
-			db.select().from(users).where(eq(users.userId, user.id)).execute(),
-		);
+		const existingUser = await db.select().from(users).where(eq(users.userId, user.id)).execute();
 
 		// Si el usuario no existe, lo insertamos.
 		if (existingUser.length === 0) {
 			try {
-				yield* Effect.promise(() =>
-					db.insert(users).values({
+				await db.insert(users).values({
 						userId: user.id,
 						email: user.email,
 						name: user.user_metadata.name,
 						phone: user.phone,
-					}),
-				);
+					});
 				console.log(`Nuevo usuario insertado: ${user.email}`);
 				redirectTo = `${requestUrl.origin}/auth/sign-up-success`;
 			} catch (dbError) {
@@ -65,14 +57,11 @@ const handleAuthCallback = (request: NextRequest) =>
 
 		// Finalmente, devolvemos la redirección exitosa.
 		return NextResponse.redirect(redirectTo);
-	}).pipe(
-		// Proporcionamos la capa del cliente de Supabase a la lógica del Effect.
-		Effect.provide(createClient),
-	);
+	};
 
 export async function GET(request: NextRequest) {
 	// Ejecutamos el Effect y devolvemos la respuesta.
 	// runPromise se encargará de ejecutar toda la lógica y devolver el NextResponse
 	// al final. Si ocurre algún error no capturado, también lo manejará.
-	return await Effect.runPromise(handleAuthCallback(request));
+	return await handleAuthCallback(request);
 }

@@ -1,5 +1,4 @@
-import { Effect, Cause } from "effect";
-import { createClient, SupabaseClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient as createClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -41,155 +40,98 @@ function getRootErrorMessage(err: unknown): string | undefined {
 	}
 }
 
-/** Effects */
-const updateProfileEffect = (
-	userId: string,
-	name: string,
-	idNumber: string,
-	phone?: string,
-) =>
-	Effect.tryPromise({
-		try: () =>
-			db
-				.update(users)
-				.set({
-					name,
-					idNumber,
-					phone,
-					updatedAt: new Date(),
-				})
-				.where(eq(users.userId, userId)),
-		catch: (err) => {
-			console.error("[updateProfile] internal error:", err);
-			const root = getRootErrorMessage(err) ?? "";
-			if (
-				root.includes("UNIQUE constraint failed") &&
-				root.includes("users.id_number")
-			) {
-				return new Error("ID_NUMBER_CONFLICT");
-			}
-			return new Error("DB_ERROR");
-		},
-	});
+/** Actualiza el perfil en DB */
+async function updateProfile(
+    userId: string,
+    name: string,
+    idNumber: string,
+    phone?: string,
+) {
+    try {
+        await db
+            .update(users)
+            .set({
+                name,
+                idNumber,
+                phone,
+                updatedAt: new Date(),
+            })
+            .where(eq(users.userId, userId));
+    } catch (err) {
+        console.error("[updateProfile] internal error:", err);
+        const root = getRootErrorMessage(err) ?? "";
+        if (
+            root.includes("UNIQUE constraint failed") &&
+            root.includes("users.id_number")
+        ) {
+            throw new Error("ID_NUMBER_CONFLICT");
+        }
+        throw new Error("DB_ERROR");
+    }
+}
 
 export async function POST(req: NextRequest) {
-	// parseo defensivo
-	let ds: any;
-	try {
-		ds = await req.json();
-	} catch {
-		return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
-	}
+    // parseo defensivo
+    let ds: any;
+    try {
+        ds = await req.json();
+    } catch {
+        return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+    }
 
-	const { name, idNumber, phone } = ds ?? {};
-	if (!name || !idNumber) {
-		return NextResponse.json(
-			{ error: "Name and ID Number are required" },
-			{ status: 400 },
-		);
-	}
+    const { name, idNumber, phone } = ds ?? {};
+    if (!name || !idNumber) {
+        return NextResponse.json(
+            { error: "Name and ID Number are required" },
+            { status: 400 },
+        );
+    }
 
-	const program = Effect.gen(function* ($) {
-		// A diferencia del código anterior, obtenemos el cliente de Supabase
-		// directamente del contexto de Effect.
-		const supabase = yield* $(SupabaseClient);
+    try {
+        const supabase = await createSupabaseServerClient();
+        await supabase.auth.getSession();
+        const {
+            data: { user },
+            error,
+        } = await supabase.auth.getUser();
 
-		const {
-			data: { user },
-		} = yield* $(
-			Effect.tryPromise({
-				try: () => supabase.auth.getUser(),
-				catch: (err) => {
-					console.error("[getUser] internal error:", err);
-					return new Error("GET_USER_ERROR");
-				},
-			}),
-		);
+        if (error) {
+            console.error("[getUser] internal error:", error);
+            return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        }
 
-		if (!user) {
-			// fallo esperado por auth
-			return yield* $(Effect.fail(new Error("USER_NOT_LOGGED_IN")));
-		}
+        if (!user) {
+            return NextResponse.json({ error: "User not logged in" }, { status: 401 });
+        }
 
-		// Si falla, updateProfileEffect retornará Error("ID_NUMBER_CONFLICT") o Error("DB_ERROR")
-		yield* $(updateProfileEffect(user.id, name, idNumber, phone));
+        await updateProfile(user.id, name, idNumber, phone);
 
-		return NextResponse.json({ message: "Profile updated successfully" });
-	});
+        return NextResponse.json({ message: "Profile updated successfully" });
+    } catch (cause) {
+        console.error("[POST /api/profile] error:", cause);
+        const root = getRootErrorMessage(cause) ?? "";
 
-	// Mapeamos éxito/fallo a NextResponse. IMPORTANTE: devolver un NextResponse, no una función.
-	const handled = Effect.matchEffect(program, {
-		onSuccess: (res) => Effect.succeed(res as NextResponse),
-		onFailure: (cause) => {
-			// Inspect & logging
-			console.error("[POST /api/profile] cause:", cause);
+        if (root.includes("ID_NUMBER_CONFLICT")) {
+            return NextResponse.json(
+                { error: "El número de identificación ya está en uso." },
+                { status: 409 },
+            );
+        }
 
-			const root = getRootErrorMessage(cause) ?? "";
+        if (
+            root.includes("CREATE_CLIENT_ERROR") ||
+            root.includes("GET_USER_ERROR") ||
+            root.includes("DB_ERROR")
+        ) {
+            return NextResponse.json(
+                { error: "Ha ocurrido un error interno. Intenta nuevamente más tarde." },
+                { status: 500 },
+            );
+        }
 
-			// Errores esperados - respondemos con mensajes adecuados
-			if (root.includes("USER_NOT_LOGGED_IN")) {
-				return Effect.succeed(
-					NextResponse.json({ error: "User not logged in" }, { status: 401 }),
-				);
-			}
-			if (root.includes("ID_NUMBER_CONFLICT")) {
-				return Effect.succeed(
-					NextResponse.json(
-						{ error: "El número de identificación ya está en uso." },
-						{ status: 409 },
-					),
-				);
-			}
-			if (
-				root.includes("CREATE_CLIENT_ERROR") ||
-				root.includes("GET_USER_ERROR") ||
-				root.includes("DB_ERROR")
-			) {
-				return Effect.succeed(
-					NextResponse.json(
-						{
-							error:
-								"Ha ocurrido un error interno. Intenta nuevamente más tarde.",
-						},
-						{ status: 500 },
-					),
-				);
-			}
-
-			// Si es un defect (die) — usar Cause helper si está disponible
-			try {
-				if (Cause.isDieType(cause)) {
-					console.error("[POST /api/profile] defect (die) detected:", cause);
-					return Effect.succeed(
-						NextResponse.json(
-							{
-								error:
-									"Error crítico en el servidor. El equipo fue notificado.",
-							},
-							{ status: 500 },
-						),
-					);
-				}
-			} catch {
-				// ignore
-			}
-
-			// Fallback genérico
-			return Effect.succeed(
-				NextResponse.json(
-					{
-						error:
-							"Ha ocurrido un error interno. Intenta nuevamente más tarde.",
-					},
-					{ status: 500 },
-				),
-			);
-		},
-	}).pipe(
-		// Proporcionamos la capa del cliente de Supabase al programa principal.
-		Effect.provide(createClient),
-	);
-
-	// Ejecuta y devuelve la respuesta concreta (ya es un NextResponse)
-	return Effect.runPromise(handled);
+        return NextResponse.json(
+            { error: "Ha ocurrido un error interno. Intenta nuevamente más tarde." },
+            { status: 500 },
+        );
+    }
 }

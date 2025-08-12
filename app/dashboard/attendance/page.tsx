@@ -1,9 +1,8 @@
-import React from "react";
+// Server Component
 import { db } from "@/lib/db/index";
 import { qrTokens } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { Effect } from "effect";
-import { createClient, SupabaseClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import DashboardSidebar from "@/components/dashboard";
 import {
 	Card,
@@ -16,28 +15,16 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CalendarDays, QrCode, Clock } from "lucide-react";
 
-// La lógica principal de la página, escrita como un Effect para manejar las dependencias.
-const attendancePageLogic = Effect.gen(function* () {
-	// Obtiene el cliente de Supabase del contexto de Effect.
-	const sb = yield* SupabaseClient;
-
-	// Envuelve la llamada asíncrona de Supabase en Effect.promise.
-	const { data } = yield* Effect.promise(() => sb.auth.getUser());
-
-	// Envuelve la llamada asíncrona de Drizzle en Effect.promise.
-	const asistencias = yield* Effect.promise(() =>
-		db.select().from(qrTokens).where(eq(qrTokens.userId, data.user?.id)),
-	);
-
-	// Devuelve los datos necesarios para renderizar el componente.
-	return { userFromDb: data.user, claims: data.user, asistencias };
-});
-
 async function Page() {
-	// Ejecuta la lógica del Effect, proporcionando la capa del cliente de Supabase.
-	const { userFromDb, claims, asistencias } = await Effect.runPromise(
-		attendancePageLogic.pipe(Effect.provide(createClient)),
-	);
+	const sb = await createSupabaseServerClient();
+	const { data } = await sb.auth.getUser();
+	const userId = data.user?.id;
+	const asistencias = await db
+		.select()
+		.from(qrTokens)
+		.where(eq(qrTokens.userId, userId));
+	const userFromDb = data.user;
+	const claims = data.user;
 
 	return (
 		<DashboardSidebar userFromDb={userFromDb} claims={claims}>
