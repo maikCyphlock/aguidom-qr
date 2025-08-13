@@ -70,24 +70,9 @@ async function updateProfile(
 	}
 }
 
-export async function POST(req: NextRequest) {
-	// parseo defensivo
-	let ds: any;
+export async function POST(request: NextRequest) {
 	try {
-		ds = await req.json();
-	} catch {
-		return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
-	}
-
-	const { name, idNumber, phone } = ds ?? {};
-	if (!name || !idNumber) {
-		return NextResponse.json(
-			{ error: "Name and ID Number are required" },
-			{ status: 400 },
-		);
-	}
-
-	try {
+		const body: { email: string; name: string } = await request.json();
 		const supabase = await createSupabaseServerClient();
 		await supabase.auth.getSession();
 		const {
@@ -110,12 +95,21 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		await updateProfile(user.id, name, idNumber, phone);
+		const { data, error: updateError } = await supabase
+			.from('users')
+			.update({ name: body.name })
+			.eq('email', body.email)
+			.select();
 
-		return NextResponse.json({ message: "Profile updated successfully" });
-	} catch (cause) {
-		console.error("[POST /api/profile] error:", cause);
-		const root = getRootErrorMessage(cause) ?? "";
+		if (updateError) {
+			console.error('Error updating user:', updateError);
+			return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+		}
+
+		return NextResponse.json({ success: true, data });
+	} catch (error: unknown) {
+		console.error("[POST /api/profile] error:", error);
+		const root = getRootErrorMessage(error) ?? "";
 
 		if (root.includes("ID_NUMBER_CONFLICT")) {
 			return NextResponse.json(
