@@ -25,12 +25,12 @@ export function ErrorCatcher() {
 	const lastErrorToastAtRef = useRef<number>(0);
 
 	// Configurables
-	const idleTimeLimit = 45 * 1000; // 45s
+	const idleTimeLimit = 90 * 1000; // 45s
 	const clickFailLimit = 30 * 1000; // 30s sin clics válidos
 	const errorSuppressionWindow = 30 * 1000; // 30s: no abrir más toasts de error dentro de este periodo
 
 	// --- Helper para serializar argumentos de console.error ---
-	const serializeArg = (arg: any) => {
+	const serializeArg = (arg:  unknown) => {
 		if (typeof arg === "string") return arg;
 		try {
 			return JSON.stringify(arg, (_key, value) =>
@@ -84,7 +84,7 @@ export function ErrorCatcher() {
 
 					<Textarea
 						placeholder="Describe lo que estabas haciendo..."
-						onChange={(e) => (userNote = e.target.value)}
+						onChange={(e) => (userNote  = e.target.value)}
 						rows={3}
 						className="mb-4"
 					/>
@@ -133,7 +133,7 @@ export function ErrorCatcher() {
 					</div>
 				</div>
 			),
-			{ duration: Infinity },
+			{ duration: 1000 },
 		);
 	};
 
@@ -141,7 +141,7 @@ export function ErrorCatcher() {
 	useEffect(() => {
 		const originalError = console.error;
 
-		console.error = (...args: any[]) => {
+		console.error = (...args: unknown[]) => {
 			// Mantener salida en consola (para debugging en dev)
 			originalError(...args);
 
@@ -178,7 +178,7 @@ export function ErrorCatcher() {
 			console.error = originalError;
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [  ]);
 
 	// --- Lógica de inactividad (se mantiene igual que antes) ---
 	useEffect(() => {
@@ -230,7 +230,7 @@ export function ErrorCatcher() {
 			if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [  ]);
 
 	return null;
 }

@@ -19,15 +19,16 @@ async function Page() {
 	const sb = await createSupabaseServerClient();
 	const { data } = await sb.auth.getUser();
 	const userId = data.user?.id;
+	if (!userId) {
+		return (<div>No has iniciado sesión</div>);
+	}
 	const asistencias = await db
 		.select()
 		.from(qrTokens)
 		.where(eq(qrTokens.userId, userId));
-	const userFromDb = data.user;
-	const claims = data.user;
 
 	return (
-		<DashboardSidebar userFromDb={userFromDb} claims={claims}>
+		<DashboardSidebar >
 			<div className="space-y-6">
 				{/* Encabezado */}
 				<div>

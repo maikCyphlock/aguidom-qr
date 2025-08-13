@@ -12,20 +12,24 @@ import { Separator } from "@/components/ui/separator";
 import { CheckCircle, QrCode, Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { clubs } from "@/lib/db/schema";
+import { UserInfo } from "@/components/user-info";
+import Image from 'next/image';
 
 export default async function Home() {
 	const Clubs = await db.select().from(clubs);
-	const logoSource = "clubAguidom.png";
 
 	return (
 		<div className="min-h-screen bg-background text-foreground">
 			{/* Header */}
+			<UserInfo />
 			<header className="container mx-auto px-4 py-6 flex justify-between items-center">
 				<div className="flex items-center space-x-2">
-					<img
-						src={logoSource}
-						className="h-16 w-auto"
+					<Image
+						src="/clubAguidom.png"
 						alt="Club Aguidom Logo"
+						width={64}
+						height={64}
+						className="h-16 w-auto"
 					/>
 				</div>
 				<nav className="hidden md:flex space-x-8">
@@ -163,10 +167,12 @@ export default async function Home() {
 					<div className="flex flex-col md:flex-row justify-between items-center">
 						<div className="mb-6 md:mb-0">
 							<div className="flex items-center space-x-2">
-								<img
-									src={logoSource}
-									className="h-16 w-auto"
+								<Image
+									src="/clubAguidom-claro.png"
 									alt="Club Aguidom Logo"
+									width={64}
+									height={64}
+									className="h-16 w-auto"
 								/>
 							</div>
 							<p className="mt-2 text-sm text-muted-foreground">
@@ -174,15 +180,15 @@ export default async function Home() {
 							</p>
 						</div>
 						<div className="flex space-x-6">
-							<a href="#" className="hover:text-foreground">
+							<button type="button" className="hover:text-foreground">
 								Términos
-							</a>
-							<a href="#" className="hover:text-foreground">
+							</button>
+							<button type="button" className="hover:text-foreground">
 								Privacidad
-							</a>
-							<a href="#" className="hover:text-foreground">
+							</button>
+							<button type="button" className="hover:text-foreground">
 								Contacto
-							</a>
+							</button>
 						</div>
 					</div>
 					<Separator className="my-8 bg-border" />

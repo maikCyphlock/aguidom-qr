@@ -10,7 +10,9 @@ export async function GET() {
 		if (shouldRedirect || !userFromDb) {
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
-
+		if(!userFromDb.clubId) {
+			return NextResponse.json({ error: "No clubId" }, { status: 400 });
+		}
 		const club = await db
 			.select()
 			.from(clubs)

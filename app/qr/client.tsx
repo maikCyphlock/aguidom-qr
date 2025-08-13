@@ -61,9 +61,15 @@ export default function QRGeneratorPage({
 			setQrCode(data.token);
 			setExpiresAt(data.expiresAt);
 			setSuccess("Código QR generado exitosamente!");
-		} catch (err: any) {
-			console.error("Error completo:", err);
-			setError(err.message || "Error al generar el código QR");
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				console.error('Error generating QR token:', error);
+				setError(error?.message || "Error al generar el código QR");
+			} else {
+				console.error('Error generating QR token:', error);
+				setError("Error al generar el código QR");
+			}
+			
 		} finally {
 			setLoading(false);
 		}

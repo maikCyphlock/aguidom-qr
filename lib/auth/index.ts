@@ -5,8 +5,8 @@ import { eq } from "drizzle-orm";
 
 export type AuthenticatedUserResult = {
 	shouldRedirect: boolean;
-	claims: any | null;
-	userFromDb: any | null;
+	claims:  unknown | null;
+	userFromDb: typeof users.$inferSelect | undefined;
 };
 
 export async function getAuthenticatedUser(): Promise<AuthenticatedUserResult> {
@@ -17,7 +17,7 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUserResult> {
 		} = await supabase.auth.getSession();
 
 		if (!session) {
-			return { shouldRedirect: true, claims: null, userFromDb: null };
+			return { shouldRedirect: true, claims: null, userFromDb: undefined };
 		}
 
 		const user = session.user;
@@ -34,6 +34,6 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUserResult> {
 		};
 	} catch (error) {
 		console.error("Authentication error:", error);
-		return { shouldRedirect: true, claims: null, userFromDb: null };
+		return { shouldRedirect: true, claims: null, userFromDb: undefined };
 	}
 }

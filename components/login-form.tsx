@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -15,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuthStore } from "@/lib/stores";
+
 
 const GoogleIcon = (props: React.ComponentProps<"svg">) => (
 	<svg
@@ -23,6 +24,7 @@ const GoogleIcon = (props: React.ComponentProps<"svg">) => (
 		viewBox="0 0 256 262"
 		xmlns="http://www.w3.org/2000/svg"
 		preserveAspectRatio="xMidYMid"
+		aria-hidden="true"
 		{...props}
 	>
 		<path
@@ -50,12 +52,10 @@ export function LoginForm({
 }: React.ComponentPropsWithoutRef<"div">) {
 	const [form, setForm] = useState({ email: "", password: "" });
 	const [showPassword, setShowPassword] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 	const cardRef = useRef<HTMLDivElement>(null);
-
-	const supabase = createClient();
+	
+	const { signIn, isLoading, error, clearError } = useAuthStore();
 
 	const navigateTo = (url: string) => {
 		router.push(url);
@@ -67,31 +67,23 @@ export function LoginForm({
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setIsLoading(true);
-		setError(null);
-
-		const { error } = await supabase.auth.signInWithPassword(form);
-		if (error) {
-			setError(error.message);
-			setIsLoading(false);
-			return;
+		clearError();
+		
+		try {
+			await signIn(form.email, form.password);
+			navigateTo("/");
+		} catch (error) {
+			console.error('Error al iniciar sesión:', error);
 		}
-		navigateTo("/");
 	};
 
-	const handleGoogleSignIn = async (e) => {
+	const handleGoogleSignIn = async (e: React.MouseEvent) => {
 		e.preventDefault();
-		setIsLoading(true);
-		setError(null);
-		const { error } = await supabase.auth.signInWithOAuth({
-			provider: "google",
-			options: { redirectTo: `${window.location.origin}/auth/callback` },
-		});
-
-		if (error) {
-			setError(error.message || "Ocurrió un error con Google");
-			setIsLoading(false);
-		}
+		clearError();
+		
+		// Por ahora, redirigir a la página de callback de Google
+		// Esto se puede implementar más adelante con Zustand
+		window.location.href = `${window.location.origin}/auth/callback`;
 	};
 
 	return (
@@ -129,8 +121,9 @@ export function LoginForm({
 							<div className="flex items-center justify-between">
 								<Label htmlFor="password">Contraseña</Label>
 								<a
-									onClick={() => navigateTo("/auth/forgot-password")}
+									href="/auth/forgot-password"
 									className="text-sm text-muted-foreground hover:underline cursor-pointer"
+								
 								>
 									¿Olvidaste tu contraseña?
 								</a>

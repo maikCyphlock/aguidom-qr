@@ -41,23 +41,23 @@ const handleAuthCallback = async (request: NextRequest) => {
 		.where(eq(users.userId, user.id))
 		.execute();
 
-	// Si el usuario no existe, lo insertamos.
-	if (existingUser.length === 0) {
-		try {
-			await db.insert(users).values({
-				userId: user.id,
-				email: user.email,
-				name: user.user_metadata.name,
-				phone: user.phone,
-			});
-			console.log(`Nuevo usuario insertado: ${user.email}`);
-			redirectTo = `${requestUrl.origin}/auth/sign-up-success`;
-		} catch (dbError) {
-			console.error("Error al insertar el usuario en Drizzle:", dbError);
-			// Devolvemos el error de la base de datos como una respuesta de error.
-			return NextResponse.redirect(`${requestUrl.origin}/auth/error`);
+		if (existingUser.length === 0) {
+			try {
+				const userData = {
+					userId: user.id,
+					email: user.email ?? "", // Provide a default empty string if email is undefined
+					name: user.user_metadata.name ?? "", // Provide a default empty string
+					phone: user.phone ?? null, // phone is already optional, but this makes it explicit
+				};
+		
+				await db.insert(users).values(userData);
+				console.log(`Nuevo usuario insertado: ${user.email}`);
+				redirectTo = `${requestUrl.origin}/auth/sign-up-success`;
+			} catch (dbError) {
+				console.error("Error al insertar el usuario en Drizzle:", dbError);
+				return NextResponse.redirect(`${requestUrl.origin}/auth/error`);
+			}
 		}
-	}
 
 	// Finalmente, devolvemos la redirección exitosa.
 	return NextResponse.redirect(redirectTo);

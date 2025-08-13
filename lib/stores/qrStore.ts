@@ -37,7 +37,7 @@ interface QRState {
 
 export const useQRStore = create<QRState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       currentToken: null,
       attendanceRecords: [],
       isGenerating: false,

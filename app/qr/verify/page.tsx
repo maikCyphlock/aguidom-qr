@@ -22,7 +22,7 @@ export default function QRScanner() {
 		error?: string;
 	} | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+	const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
 	const [selectedCamera, setSelectedCamera] = useState<string>("");
 	const scannerRef = useRef<Html5Qrcode | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -68,15 +68,29 @@ export default function QRScanner() {
 		fetchCameras();
 	}, []);
 
-	useEffect(() => {
-		if (scanning && selectedCamera && containerRef.current) {
-			startScanner();
-		} else {
-			stopScanner();
-		}
 
-		return () => stopScanner();
-	}, [scanning, selectedCamera]);
+
+	const handleScanSuccess = useCallback(async (decodedText: string) => {
+		setScanning(false);
+		setResult(null);
+		setError(null);
+		setVerifying(true);
+
+		try {
+			const res = await fetch("/api/verify-qr", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ token: decodedText }),
+			});
+
+			const json = await res.json();
+			setResult(json);
+		} catch (e: unknown) {
+			setError("Error al verificar el código: " + (e instanceof Error ? e.message : String(e)));
+		} finally {
+			setVerifying(false);
+		}
+	}, []);
 
 	const startScanner = useCallback(async () => {
 		setError(null);
@@ -94,11 +108,11 @@ export default function QRScanner() {
 				(decodedText) => handleScanSuccess(decodedText),
 				() => {},
 			);
-		} catch (err: any) {
-			setError(`Error al iniciar cámara: ${err.message || err}`);
+		} catch (err: unknown) {
+			setError(`Error al iniciar cámara: ${err instanceof Error ? err.message : String(err)}`);
 			setScanning(false);
 		}
-	}, [selectedCamera]);
+	}, [selectedCamera, handleScanSuccess]);
 
 	const stopScanner = useCallback(() => {
 		if (scannerRef.current && scannerRef.current.isScanning) {
@@ -109,28 +123,6 @@ export default function QRScanner() {
 		scannerRef.current = null;
 	}, []);
 
-	const handleScanSuccess = async (decodedText: string) => {
-		setScanning(false);
-		setResult(null);
-		setError(null);
-		setVerifying(true);
-
-		try {
-			const res = await fetch("/api/verify-qr", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ token: decodedText }),
-			});
-
-			const json = await res.json();
-			setResult(json);
-		} catch (e: any) {
-			setError("Error al verificar el código: " + e.message);
-		} finally {
-			setVerifying(false);
-		}
-	};
-
 	const switchCamera = () => {
 		if (cameras.length < 2) return;
 
@@ -138,6 +130,16 @@ export default function QRScanner() {
 		const nextIndex = (currentIndex + 1) % cameras.length;
 		setSelectedCamera(cameras[nextIndex].id);
 	};
+
+	useEffect(() => {
+		if (scanning && selectedCamera && containerRef.current) {
+			startScanner();
+		} else {
+			stopScanner();
+		}
+
+		return () => stopScanner();
+	}, [scanning, selectedCamera, startScanner, stopScanner]);
 
 	return (
 		<div className="grid place-content-center min-h-screen">

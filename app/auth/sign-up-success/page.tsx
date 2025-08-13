@@ -30,14 +30,15 @@ export default async function Page() {
 				email: data.user.email as string,
 			});
 		}
-	} catch (err: any) {
-		if (
-			typeof err?.message === "string" &&
-			err.message.includes("SQLITE_CONSTRAINT")
-		) {
+	} catch (error: unknown) {
+		console.error('Error during sign up:', error);	
+		if (error instanceof Error && error.message.includes("SQLITE_CONSTRAINT")) {
+		 
 			console.log("User already exists, skipping creation.");
-		} else {
-			console.error("An unexpected error occurred while processing user:", err);
+		} else if (error instanceof Error && error.message.includes("CREATE_CLIENT_ERROR")) {
+			console.log("User already exists, skipping creation.");
+		}else{
+			console.error("An unexpected error occurred while processing user:", error);
 		}
 	}
 

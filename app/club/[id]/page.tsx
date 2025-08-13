@@ -5,12 +5,13 @@ import { attendance, users, clubs } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import ClubClient, { type AttendanceItem, type Member } from "../client";
 
-type PageProps = {
-	params: { id: string };
-};
-
-export default async function ClubAdminPage({ params }: PageProps) {
-	const { id } = params;
+export default async function ClubAdminPage({
+	params,
+}: {
+	params: Promise<{ slug: string }>;
+}) {
+	const { slug } = await params;
+	const id  = slug;
 	if (!id) return notFound();
 
 	const { shouldRedirect, userFromDb } = await getAuthenticatedUser();

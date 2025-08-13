@@ -147,7 +147,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       // Sincronizar perfil del usuario desde la API
-      syncUserProfile: async (email: string) => {
+      syncUserProfile: async () => {
         try {
           const response = await fetch('/api/user/profile')
           

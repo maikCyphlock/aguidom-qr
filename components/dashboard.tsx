@@ -1,4 +1,5 @@
 // components/dashboard.tsx
+"use client";
 
 import type React from "react";
 import {
@@ -15,33 +16,34 @@ import {
 import { Button } from "@/components/ui/button";
 import { LogOut, User, Settings, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { handleLogout } from "@/actions/handle";
+import { useAuthStore } from "@/lib/stores";
 import Link from "next/link";
+
+
 export default function DashboardSidebar({
-	userFromDb,
-	claims,
 	children,
+
 }: {
-	userFromDb: any;
-	claims: any;
-	children: React.ReactNode;
+	children: React.ReactNode;	
 }) {
+	const { user, signOut,userProfile } = useAuthStore();
+
 	return (
 		<SidebarProvider>
 			{/* Botón para abrir/cerrar */}
 			<SidebarTrigger className="m-2" />
-			<Sidebar collapsible="icon">
+			<Sidebar collapsible="icon" >
 				{/* Header con info de usuario */}
 				<SidebarHeader>
 					<div className="flex items-center gap-3">
 						<Avatar>
-							<AvatarImage src={claims.user_metadata.avatar_url} />
-							<AvatarFallback>{userFromDb?.name?.[0] || "U"}</AvatarFallback>
+							<AvatarImage src={user?.user_metadata?.avatar_url} />
+							<AvatarFallback>{user?.user_metadata?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || "U"}</AvatarFallback>
 						</Avatar>
 						<div className="truncate">
-							<p className="font-semibold">{userFromDb?.name}</p>
+							<p className="font-semibold">{user?.user_metadata?.full_name || "Usuario"}</p>
 							<p className="text-xs text-muted-foreground truncate">
-								{userFromDb?.email}
+								{user?.email}
 							</p>
 						</div>
 					</div>
@@ -70,22 +72,27 @@ export default function DashboardSidebar({
 									Asistencia
 								</Button>
 							</Link>
+							<Link href={`/club/${userProfile?.clubId}`}>
+								<Button variant="ghost" className="w-full justify-start">
+									<Calendar className="w-4 h-4 mr-2" />
+									Mi club
+								</Button>
+							</Link>
 						</SidebarGroupContent>
 					</SidebarGroup>
 				</SidebarContent>
 
 				{/* Footer con Logout */}
 				<SidebarFooter>
-					<form action={handleLogout} className="w-full">
-						<Button
-							type="submit"
-							variant="destructive"
-							className="w-full justify-start"
-						>
-							<LogOut className="w-4 h-4 mr-2" />
-							Cerrar sesión
-						</Button>
-					</form>
+					<Button
+						type="button"
+						variant="destructive"
+						className="w-full justify-start"
+						onClick={signOut}
+					>
+						<LogOut className="w-4 h-4 mr-2" />
+						Cerrar sesión
+					</Button>
 				</SidebarFooter>
 			</Sidebar>
 			<div className="px-2 w-full">{children}</div>

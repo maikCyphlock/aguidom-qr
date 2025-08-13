@@ -9,6 +9,7 @@ import Dashboard from "@/components/dashboard";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { users } from "@/lib/db/schema";
 
 interface State {
 	message: string | null;
@@ -20,7 +21,7 @@ export function ProfileForm({
 	userFromDb,
 }: {
 	user: User;
-	userFromDb: any;
+	userFromDb: typeof users.$inferSelect;
 }) {
 	const [state, setState] = useState<State>({ message: null, error: null });
 	const [isPending, startTransition] = useTransition();
@@ -30,28 +31,33 @@ export function ProfileForm({
 		const formData = new FormData(event.currentTarget);
 
 		startTransition(async () => {
-			const response = await fetch("/api/profile", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					name: formData.get("name"),
-					idNumber: formData.get("idNumber"),
-					phone: formData.get("phone"),
-					userFromDb,
-				}),
-			});
+			try {
+				const response = await fetch("/api/profile", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						name: formData.get("name"),
+						idNumber: formData.get("idNumber"),
+						phone: formData.get("phone"),
+						userFromDb,
+					}),
+				});
 
-			const result = await response.json();
-			setState(
-				response.ok
-					? { message: result.message, error: null }
-					: { message: null, error: result.error },
-			);
+				const result = await response.json();
+				setState(
+					response.ok
+						? { message: result.message, error: null }
+						: { message: null, error: result.error },
+				);
+			} catch (error: unknown) {
+				console.error('Error updating profile:', error);
+				setState({ message: null, error: 'Error updating profile' });
+			}
 		});
 	};
 
 	return (
-		<Dashboard userFromDb={userFromDb} claims={user}>
+		<Dashboard>
 			<Card className=" max-w-2xl w-full mx-auto">
 				<CardHeader>
 					<CardTitle>Editar Perfil</CardTitle>
@@ -80,7 +86,7 @@ export function ProfileForm({
 								id="name"
 								name="name"
 								type="text"
-								defaultValue={userFromDb?.name}
+								defaultValue={userFromDb?.name ?? ""}
 								required
 							/>
 						</div>
@@ -91,7 +97,7 @@ export function ProfileForm({
 								id="idNumber"
 								name="idNumber"
 								type="text"
-								defaultValue={userFromDb?.idNumber}
+								defaultValue={userFromDb?.idNumber ?? ""}
 								required
 							/>
 						</div>

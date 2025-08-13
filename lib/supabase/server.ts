@@ -10,14 +10,14 @@ export async function createSupabaseServerClient() {
 		{
 			cookies: {
 				async getAll() {
-					return (await cookieStore).getAll();
+					return cookieStore.getAll();
 				},
 				async setAll(cookiesToSet) {
 					try {
 						for (const { name, value, options } of cookiesToSet) {
-							(await cookieStore).set(name, value, options);
+							cookieStore.set(name, value, options);
 						}
-					} catch (error) {
+					} catch {
 						// Ignore if called from Server Component
 					}
 				},

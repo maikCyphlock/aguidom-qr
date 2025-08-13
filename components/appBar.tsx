@@ -2,36 +2,19 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { bottomNavRoutes } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
-import { createClient } from "@/lib/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { User } from "@supabase/supabase-js";
+import { useAuthStore } from "@/lib/stores";
 
-// Se crea el cliente una sola vez para que sea persistente en el ciclo de vida del componente
-const supabase = createClient();
 
 export default function AppBar() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const navRef = useRef<HTMLDivElement>(null);
-	const [user, setUser] = useState<User | null>(null);
-
-	useEffect(() => {
-		// Escucha todos los cambios en el estado de autenticación.
-		// Este listener se dispara una vez inmediatamente con el estado actual de la sesión.
-		const {
-			data: { subscription },
-		} = supabase.auth.onAuthStateChange((event, session) => {
-			console.log("Evento de autenticación:", event); // Para depuración, puedes ver qué evento se dispara
-			setUser(session?.user ?? null);
-		});
-
-		// Limpieza del listener al desmontar el componente
-		return () => subscription.unsubscribe();
-	}, []);
+	const { user } = useAuthStore();
 
 	useEffect(() => {
 		if (navRef.current) {
@@ -69,6 +52,7 @@ export default function AppBar() {
 
 					return (
 						<button
+							type="button"
 							key={path}
 							onClick={() => handleClick(path, index)}
 							className={cn(
@@ -103,7 +87,7 @@ export default function AppBar() {
 					);
 				})}
 				{user && (
-					<button onClick={() => router.push("/dashboard")}>
+					<button type="button" onClick={() => router.push("/dashboard")}>
 						<Avatar>
 							<AvatarImage src={user.user_metadata.avatar_url} />
 							<AvatarFallback>
