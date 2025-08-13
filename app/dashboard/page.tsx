@@ -12,7 +12,7 @@ export default function DashboardPage() {
 		<Dashboard>
 			<div className="flex w-full min-h-screen bg-muted/20">
 				<main className="flex-1 p-6">
-					<h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+					<h1 className="text-2xl font-bold mb-6">Mi perfil</h1>
 
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 						<Card className="col-span-1 md:col-span-2">

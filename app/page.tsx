@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { CheckCircle, QrCode, Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { clubs } from "@/lib/db/schema";
-import { UserInfo } from "@/components/user-info";
+
 import Image from 'next/image';
 
 export default async function Home() {
@@ -21,7 +21,7 @@ export default async function Home() {
 	return (
 		<div className="min-h-screen bg-background text-foreground">
 			{/* Header */}
-			<UserInfo />
+		
 			<header className="container mx-auto px-4 py-6 flex justify-between items-center">
 				<div className="flex items-center space-x-2">
 					<Image

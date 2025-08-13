@@ -11,9 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { users } from "@/lib/db/schema";
 
+
 interface State {
 	message: string | null;
 	error: string | null;
+	details: string | null;
 }
 
 export function ProfileForm({
@@ -23,7 +25,7 @@ export function ProfileForm({
 	user: User;
 	userFromDb: typeof users.$inferSelect;
 }) {
-	const [state, setState] = useState<State>({ message: null, error: null });
+	const [state, setState] = useState<State>({ message: null, error: null, details: null });
 	const [isPending, startTransition] = useTransition();
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -46,12 +48,13 @@ export function ProfileForm({
 				const result = await response.json();
 				setState(
 					response.ok
-						? { message: result.message, error: null }
-						: { message: null, error: result.error },
+						? { message: result.message, error: null , details: null }
+						: { message: null, error: result.error, details: result.details },
 				);
 			} catch (error: unknown) {
 				console.error('Error updating profile:', error);
-				setState({ message: null, error: 'Error updating profile' });
+				setState({ message: null, error: 'Error updating profile', details: error instanceof Error ? error.message : '' });
+				
 			}
 		});
 	};
@@ -72,6 +75,7 @@ export function ProfileForm({
 						{state?.error && (
 							<Alert className="bg-red-50 border-red-200 text-red-700">
 								<AlertDescription>{state.error}</AlertDescription>
+								{state.details && <AlertDescription className="mt-2">{state.details}</AlertDescription>}
 							</Alert>
 						)}
 
