@@ -28,5 +28,7 @@ export async function verifyQRToken(
 	return {
 		saved: true,
 		message: `Bienvenido ${user.name}, has sido verificado y escaneado correctamente`,
+		name: user.name,
+		club: user.clubId,
 	};
 }
