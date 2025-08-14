@@ -1,9 +1,10 @@
 // Importa las dependencias necesarias
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
+
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { db } from "@/lib/db";
+import { users } from "@/lib/db/schema";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
  * Obtiene el usuario autenticado y su perfil de la base de datos.

@@ -1,11 +1,11 @@
-import { getUserEmail } from "../auth/session";
-import { verifyJWT } from "../jwt/verify";
-import { findUserByEmailAndClub, type User } from "../db/users";
-import { findValidToken, markTokenAsScanned } from "../db/qr-tokens";
 import type {
 	QRVerificationRequest,
 	QRVerificationResponse,
 } from "../../types/qr-verification";
+import { getUserEmail } from "../auth/session";
+import { findValidToken, markTokenAsScanned } from "../db/qr-tokens";
+import { findUserByEmailAndClub, type User } from "../db/users";
+import { verifyJWT } from "../jwt/verify";
 
 export async function verifyQRToken(
 	request: QRVerificationRequest,

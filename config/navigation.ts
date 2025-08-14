@@ -1,5 +1,5 @@
 // src/config/navigation.ts
-import { Home, QrCode, UserCheck, ShieldCheck } from "lucide-react";
+import { Home, QrCode, ShieldCheck, UserCheck } from "lucide-react";
 
 export const bottomNavRoutes = [
 	{
