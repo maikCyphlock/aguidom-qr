@@ -1,10 +1,10 @@
-# ClubAguidom - Club Management & QR Attendance System
+# AGUIDOM QR - Club Management & QR Attendance System
 
 <p align="center">
-  <img src="public/clubAguidom.png" alt="ClubAguidom Logo" width="200"/>
+ <img width="1920" height="1080" alt="582_1x_shots_so" src="https://github.com/user-attachments/assets/31578046-d31b-4b68-bafe-b71824961e1c" />
 </p>
 
-<h1 align="center">ClubAguidom</h1>
+<h1 align="center">PODIUM </h1>
 
 <p align="center">
   A comprehensive solution for managing club members and tracking attendance through a secure QR code system. Built with Next.js, Supabase, and Turso.
