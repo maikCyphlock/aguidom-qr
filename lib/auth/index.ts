@@ -13,14 +13,14 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUserResult> {
 	try {
 		const supabase = await createSupabaseServerClient();
 		const {
-			data: { session },
-		} = await supabase.auth.getSession();
+			data: { user },
+		} = await supabase.auth.getUser();
 
-		if (!session) {
+		if (!user) {
 			return { shouldRedirect: true, claims: null, userFromDb: undefined };
 		}
 
-		const user = session.user;
+
 		const userFromDb = await db
 			.select()
 			.from(users)

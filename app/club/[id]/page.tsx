@@ -4,14 +4,13 @@ import { db } from "@/lib/db";
 import { attendance, users, clubs } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import ClubClient, { type AttendanceItem, type Member } from "../client";
+import DashboardSidebar from "@/components/dashboard";
 
 export default async function ClubAdminPage({
 	params,
-}: {
-	params: Promise<{ slug: string }>;
-}) {
-	const { slug } = await params;
-	const id  = slug;
+}: { params: Promise<{ id: string }> }) {
+
+	const { id } = await params;	
 	if (!id) return notFound();
 
 	const { shouldRedirect, userFromDb } = await getAuthenticatedUser();
@@ -64,10 +63,12 @@ export default async function ClubAdminPage({
 	}));
 
 	return (
-		<ClubClient
+		<DashboardSidebar>
+			<ClubClient
 			club={{ id: club.id, name: club.name }}
 			attendances={attendances}
 			members={members}
 		/>
+		</DashboardSidebar>
 	);
 }
