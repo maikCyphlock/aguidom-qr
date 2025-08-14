@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { QRError } from "../errors/qr-errors";
+import { ErrorUnauthorized } from "@/app/api/Error";
 
 export async function getUserEmail(): Promise<string> {
 	const supabase = await createSupabaseServerClient();
@@ -7,7 +7,7 @@ export async function getUserEmail(): Promise<string> {
 
 	const email = sessionData?.session?.user?.email;
 	if (!email) {
-		throw new QRError("Unauthorized: no email found in session", 401);
+		throw new ErrorUnauthorized("Unauthorized: no email found in session");
 	}
 
 	return email;

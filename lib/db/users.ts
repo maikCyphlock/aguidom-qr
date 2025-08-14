@@ -1,7 +1,12 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/index";
 import { users } from "@/lib/db/schema";
+
+import { eq, and } from "drizzle-orm";
+import { ErrorNotFound } from "@/app/api/Error";
+
 import { QRError } from "../errors/qr-errors";
+
 
 export type User = typeof users.$inferSelect;
 
@@ -16,7 +21,7 @@ export async function findUserByEmailAndClub(
 		.limit(1);
 
 	if (result.length === 0) {
-		throw new QRError("Usuario no encontrado en el club", 404);
+		throw new ErrorNotFound("User not found in the specified club");
 	}
 
 	return result[0];
