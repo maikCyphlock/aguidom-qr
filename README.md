@@ -1,5 +1,6 @@
 <a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
+
+  <img width="1920" height="1080" alt="582_1x_shots_so" src="https://github.com/user-attachments/assets/31578046-d31b-4b68-bafe-b71824961e1c" />
   <h1 align="center">Next.js and Supabase Starter Kit</h1>
 </a>
 
