@@ -1,106 +1,142 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-
-  <img width="1920" height="1080" alt="582_1x_shots_so" src="https://github.com/user-attachments/assets/31578046-d31b-4b68-bafe-b71824961e1c" />
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# AGUIDOM QR - Club Management & QR Attendance System
 
 <p align="center">
- The fastest way to build apps with Next.js and Supabase
+ <img width="1920" height="1080" alt="582_1x_shots_so" src="https://github.com/user-attachments/assets/31578046-d31b-4b68-bafe-b71824961e1c" />
+</p>
+
+<h1 align="center">PODIUM </h1>
+
+<p align="center">
+  A comprehensive solution for managing club members and tracking attendance through a secure QR code system. Built with Next.js, Supabase, and Turso.
 </p>
 
 <p align="center">
   <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
+  <a href="#tech-stack"><strong>Tech Stack</strong></a> ·
+  <a href="#system-architecture"><strong>Architecture</strong></a> ·
+  <a href="#getting-started"><strong>Getting Started</strong></a> ·
+  <a href="#available-scripts"><strong>Scripts</strong></a> ·
+  <a href="#documentation"><strong>Docs</strong></a>
 </p>
 <br/>
 
 ## Features
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+- **Secure User Authentication**: Handles user sign-up, sign-in, and session management using Supabase Auth.
+- **Club Management**: Allows authorized users to create and manage clubs.
+- **Member Management**: Club owners can add or remove users from their club.
+- **Role-Based Access Control**: Differentiates between regular users and admins, with specific permissions for certain actions.
+- **QR Code Attendance**:
+  - Admins can generate dynamic, short-lived JWT-based QR codes.
+  - Members can scan the QR code to register their attendance in real-time.
+- **Attendance-History**: View a log of attendance records for each club.
+- **Profile Management**: Users can update their personal information.
 
-## Demo
+## Tech Stack
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+- **Framework**: [Next.js](https://nextjs.org/) (App Router)
+- **Programming Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Authentication**: [Supabase](https://supabase.io/)
+- **Database**: [Turso](https://turso.tech/) with [Drizzle ORM](https://orm.drizzle.team/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
+- **State Management**: [Zustand](https://zustand-demo.pmnd.rs/)
+- **Form Management**: [React Hook Form](https://react-hook-form.com/) with [Zod](https://zod.dev/) for validation
+- **QR Code Scanning**: [html5-qrcode](https://github.com/mebjas/html5-qrcode)
 
-## Deploy to Vercel
+## System Architecture
 
-Vercel deployment will guide you through creating a Supabase account and project.
+This project uses a secure hybrid architecture that separates authentication from the application database.
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+- **Supabase**: Handles all user authentication and session management on the client and server.
+- **Turso**: A Turso database (via Drizzle ORM) stores all application-specific data (user profiles, clubs, attendance records).
+- **Security**: The Turso database is **only accessible from the server-side** via secure API endpoints. The client never interacts directly with the application database, ensuring that sensitive data and database credentials remain protected.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+For a more detailed explanation, see the [Authentication System Documentation](./docs/AUTHENTICATION_SYSTEM.md).
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+## Getting Started
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+Follow these steps to set up and run the project locally.
 
-## Clone and run locally
+### 1. Clone the Repository
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+```bash
+git clone https://github.com/your-username/your-repo-name.git
+cd your-repo-name
+```
 
-2. Create a Next.js app using the Supabase Starter template npx command
+### 2. Install Dependencies
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+This project uses `pnpm` as the preferred package manager, but you can use `npm` or `yarn`.
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+```bash
+pnpm install
+# or
+npm install
+# or
+yarn install
+```
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+### 3. Set Up Environment Variables
 
-3. Use `cd` to change into the app's directory
+Rename the `.env.example` file to `.env.local` and add your credentials for Supabase and Turso.
 
-   ```bash
-   cd with-supabase-app
-   ```
+```bash
+cp .env.example .env.local
+```
 
-4. Rename `.env.example` to `.env.local` and update the following:
+Update `.env.local` with your keys:
 
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   ```
+```env
+# Supabase Credentials (for authentication)
+# Find these in your Supabase project > Settings > API
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+# Turso Credentials (for application data)
+# Find these in your Turso dashboard
+TURSO_DATABASE_URL=your_turso_database_url
+TURSO_AUTH_TOKEN=your_turso_auth_token
 
-5. You can now run the Next.js local development server:
+# JWT Secret for QR Codes
+# Generate a strong, random string (e.g., using openssl rand -hex 32)
+JWT_SECRET_KEY=your_strong_secret_key
+```
 
-   ```bash
-   npm run dev
-   ```
+For more details, see the [Environment Setup Documentation](./docs/ENVIRONMENT_SETUP.md).
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+### 4. Run the Database Seed Script
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+This script will populate the database with initial data required for the application to function correctly.
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+```bash
+npm run db:seed
+```
 
-## Feedback and issues
+### 5. Run the Development Server
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+You can now start the development server.
 
-## More Supabase examples
+```bash
+pnpm dev
+# or
+npm run dev
+```
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+The application should now be running on [http://localhost:3000](http://localhost:3000).
+
+## Available Scripts
+
+- `dev`: Starts the development server with Next.js Turbopack.
+- `build`: Creates a production build of the application.
+- `start`: Starts the production server.
+- `lint`: Lints the codebase using Next.js ESLint configuration.
+- `db:seed`: Executes the database seed script.
+
+## Documentation
+
+For more in-depth information, please refer to the documentation in the `/docs` directory:
+
+- **[API Documentation](./docs/API.md)**: Detailed information about the available API endpoints.
+- **[Authentication System](./docs/AUTHENTICATION_SYSTEM.md)**: An explanation of the hybrid auth model.
+- **[Environment Setup](./docs/ENVIRONMENT_SETUP.md)**: Guide to setting up environment variables.
