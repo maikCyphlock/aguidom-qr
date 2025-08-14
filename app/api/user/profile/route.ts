@@ -51,9 +51,9 @@ export async function PUT(request: NextRequest) {
   try {
     // Verificar autenticación
     const supabase = await createSupabaseServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }} = await supabase.auth.getUser()
     
-    if (authError || !user) {
+    if ( !user) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 401 }
@@ -64,6 +64,19 @@ export async function PUT(request: NextRequest) {
     const { name, phone, clubId } = body
 
     // Actualizar perfil del usuario en Turso
+    if (!name && !phone && !clubId) {
+      return NextResponse.json(
+        { error: 'No se proporcionaron datos para actualizar el perfil' },
+        { status: 400 }
+      )
+    }
+    if(user.email === undefined){
+      return NextResponse.json(
+        { error: 'No se puede actualizar el perfil sin email' },
+        { status: 400 }
+      )
+    }
+
     const result = await db
       .update(users)
       .set({
@@ -72,17 +85,17 @@ export async function PUT(request: NextRequest) {
         clubId: clubId || null,
         updatedAt: new Date()
       })
-      .where(eq(users.email, user.email!))
+      .where(eq(users.email, user.email))
       .returning()
 
-    if (result.length === 0) {
+    if (typeof result === 'undefined') {  
       return NextResponse.json(
         { error: 'Error actualizando perfil' },
         { status: 500 }
       )
     }
 
-    const updatedProfile = result[0]
+    const updatedProfile = result ?? result[0]
 
     return NextResponse.json({
       success: true,
