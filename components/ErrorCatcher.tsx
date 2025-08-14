@@ -1,236 +1,222 @@
 // components/ErrorCatcher.tsx
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { toast } from "sonner";
 import { Bug, Clock } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 
+// El tipo de dato no cambia
 type FeedbackData = {
-	issueType: "error" | "idle";
-	message: string;
-	userNote?: string;
-	errors?: string[]; // errores técnicos acumulados (solo para issueType = "error")
-	timestamp: string;
+    issueType: "error" | "idle";
+    message: string;
+    userNote?: string;
+    errors?: string[];
+    timestamp: string;
 };
 
+// FIX: Creamos un componente interno para el contenido del toast
+// Esto resuelve el problema de la captura del estado del <Textarea>
+function FeedbackToastContent({
+    toastId,
+    payloadBase,
+    friendlyMessage,
+    errorCount,
+}: {
+    toastId: string | number;
+    payloadBase: Omit<FeedbackData, "timestamp" | "userNote" | "errors">;
+    friendlyMessage: string;
+    errorCount: number;
+}) {
+    // FIX: Usamos useState para manejar la nota del usuario de forma controlada
+    const [userNote, setUserNote] = useState("");
+    const errorBuffer = useRef<string[]>(errorBufferRef.current).current; // Copia del buffer en el momento de la creación
+
+    const handleClose = () => {
+        toast.dismiss(toastId);
+        errorToastVisibleRef.current = false;
+        lastErrorToastAtRef.current = Date.now();
+        errorBufferRef.current = [];
+    };
+
+    const handleSubmit = () => {
+        const finalPayload: FeedbackData = {
+            ...payloadBase,
+            timestamp: new Date().toISOString(),
+            userNote: userNote.trim(),
+            errors: payloadBase.issueType === "error" ? [...errorBuffer] : undefined,
+        };
+
+        // TODO: Enviar `finalPayload` a Turso (o a tu API)
+        console.log("📡 Enviando a Turso:", finalPayload);
+
+        toast.success("¡Gracias por tu ayuda!");
+        handleClose();
+    };
+
+    return (
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+            <div className="flex items-center space-x-3 mb-4">
+                {payloadBase.issueType === "error" ? (
+                    <Bug className="h-6 w-6 text-red-500" />
+                ) : (
+                    <Clock className="h-6 w-6 text-yellow-500" />
+                )}
+                <h4 className="font-bold text-xl text-gray-900 dark:text-white">
+                    {payloadBase.issueType === "error"
+                        ? "¡Ups! Algo salió mal."
+                        : "¿Todo va bien?"}
+                </h4>
+            </div>
+
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                {friendlyMessage}
+                {payloadBase.issueType === "error" && errorCount > 1 && (
+                    <span> Hemos registrado {errorCount} errores.</span>
+                )}
+            </p>
+
+            <Textarea
+                placeholder="Opcional: describe lo que estabas haciendo..."
+                onChange={(e) => setUserNote(e.target.value)}
+                value={userNote}
+                rows={3}
+                className="mb-4"
+            />
+
+            <div className="flex justify-end space-x-2">
+                <Button size="sm" variant="ghost" onClick={handleClose}>
+                    Cerrar
+                </Button>
+                <Button size="sm" onClick={handleSubmit}>
+                    Enviar Reporte
+                </Button>
+            </div>
+        </div>
+    );
+}
+
+
+// Refs globales a nivel de módulo para que sean compartidas por el toast y el componente principal
+const errorBufferRef = { current: [] as string[] };
+const errorToastVisibleRef = { current: false };
+const lastErrorToastAtRef = { current: 0 };
+
+
 export function ErrorCatcher() {
-	const idleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-	const lastClickTimeRef = useRef<number>(Date.now());
+    const idleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastClickTimeRef = useRef<number>(Date.now());
 
-	// Buffer / control de errores
-	const errorBufferRef = useRef<string[]>([]);
-	const errorToastVisibleRef = useRef<boolean>(false);
-	const lastErrorToastAtRef = useRef<number>(0);
+    // Configurables
+    const idleTimeLimit = 90 * 1000; // FIX: Comentario corregido a 90s
+    const clickFailLimit = 30 * 1000;
+    const errorSuppressionWindow = 30 * 1000;
 
-	// Configurables
-	const idleTimeLimit = 90 * 1000; // 45s
-	const clickFailLimit = 30 * 1000; // 30s sin clics válidos
-	const errorSuppressionWindow = 30 * 1000; // 30s: no abrir más toasts de error dentro de este periodo
+    const serializeArg = (arg: unknown): string => {
+        if (typeof arg === "string") return arg;
+        try {
+            return JSON.stringify(arg, (_key, value) =>
+                typeof value === "bigint" ? String(value) : value,
+            );
+        } catch {
+            return String(arg);
+        }
+    };
 
-	// --- Helper para serializar argumentos de console.error ---
-	const serializeArg = (arg:  unknown) => {
-		if (typeof arg === "string") return arg;
-		try {
-			return JSON.stringify(arg, (_key, value) =>
-				typeof value === "bigint" ? String(value) : value,
-			);
-		} catch {
-			try {
-				return String(arg);
-			} catch {
-				return "<unserializable>";
-			}
-		}
-	};
+    // FIX: Se envuelve en useCallback para evitar clausuras obsoletas en los useEffect
+    const showFeedbackToast = useCallback(
+        (
+            friendlyMessage: string,
+            payloadBase: Omit<FeedbackData, "timestamp" | "userNote" | "errors">,
+        ) => {
+            errorToastVisibleRef.current = true;
 
-	// --- Mostrar toast de feedback (usa el buffer para errores) ---
-	const showFeedbackToast = (
-		friendlyMessage: string,
-		payloadBase: Omit<FeedbackData, "timestamp">,
-	) => {
-		// señalamos que hay un toast visible
-		errorToastVisibleRef.current = true;
+            toast.custom(
+                (t) => (
+                    <FeedbackToastContent
+                        toastId={t}
+                        friendlyMessage={friendlyMessage}
+                        payloadBase={payloadBase}
+                        errorCount={errorBufferRef.current.length}
+                    />
+                ),
+                {
+                    duration: Infinity, // FIX: El toast no se cierra automáticamente
+                },
+            );
+        },
+        [], // Esta función no tiene dependencias externas, por lo que el array está vacío
+    );
 
-		let userNote = "";
+    // --- Interceptar console.error y acumular errores sin spamear toasts ---
 
-		toast.custom(
-			(t) => (
-				<div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-					<div className="flex items-center space-x-3 mb-4">
-						{payloadBase.issueType === "error" ? (
-							<Bug className="h-6 w-6 text-red-500" />
-						) : (
-							<Clock className="h-6 w-6 text-yellow-500" />
-						)}
-						<h4 className="font-bold text-xl text-gray-900 dark:text-white">
-							{payloadBase.issueType === "error"
-								? "¡Ups! Algo salió mal."
-								: "¿Todo va bien?"}
-						</h4>
-					</div>
+    useEffect(() => {
+        const originalError = console.error;
 
-					<p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-						{friendlyMessage}
-						{payloadBase.issueType === "error" &&
-						errorBufferRef.current.length > 1 ? (
-							<span>
-								{" "}
-								Hemos registrado {errorBufferRef.current.length} errores.
-							</span>
-						) : null}
-					</p>
+        console.error = (...args: unknown[]) => {
+            originalError(...args);
+            const technicalError = args.map((a) => serializeArg(a)).join(" ");
+            const buf = errorBufferRef.current;
+            if (!buf.includes(technicalError)) buf.push(technicalError);
 
-					<Textarea
-						placeholder="Describe lo que estabas haciendo..."
-						onChange={(e) => (userNote  = e.target.value)}
-						rows={3}
-						className="mb-4"
-					/>
+            const now = Date.now();
+            const timeSinceLastToast = now - lastErrorToastAtRef.current;
 
-					<div className="flex justify-end space-x-2">
-						<Button
-							size="sm"
-							variant="ghost"
-							onClick={() => {
-								// cerrar y limpiar buffer (el usuario decidió no enviar)
-								toast.dismiss(t);
-								errorToastVisibleRef.current = false;
-								lastErrorToastAtRef.current = Date.now();
-								errorBufferRef.current = [];
-							}}
-						>
-							Cerrar
-						</Button>
+            if (errorToastVisibleRef.current || timeSinceLastToast < errorSuppressionWindow) {
+                return;
+            }
 
-						<Button
-							size="sm"
-							onClick={() => {
-								const finalPayload: FeedbackData = {
-									...payloadBase,
-									timestamp: new Date().toISOString(),
-									userNote,
-									errors:
-										payloadBase.issueType === "error"
-											? [...errorBufferRef.current]
-											: undefined,
-								};
+            showFeedbackToast("Ocurrió un problema, pero ya lo estamos revisando.", {
+                issueType: "error",
+                message: "Errores detectados en la consola",
+            });
+        };
 
-								// TODO: Enviar `finalPayload` a Turso (o a tu API)
-								console.log("📡 Enviando a Turso:", finalPayload);
+        return () => {
+            console.error = originalError;
+        };
+        // FIX: Añadimos la dependencia a la función memoizada
+    }, [showFeedbackToast, errorSuppressionWindow]);
 
-								// feedback visual y limpieza
-								toast.success("¡Gracias por tu ayuda!");
-								toast.dismiss(t);
-								errorToastVisibleRef.current = false;
-								lastErrorToastAtRef.current = Date.now();
-								errorBufferRef.current = [];
-							}}
-						>
-							Enviar
-						</Button>
-					</div>
-				</div>
-			),
-			{ duration: 1000 },
-		);
-	};
+    // --- Lógica de inactividad ---
+    useEffect(() => {
+        const resetIdleTimer = () => {
+            if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
+            idleTimeoutRef.current = setTimeout(() => {
+                const timeSinceLastClick = Date.now() - lastClickTimeRef.current;
+                if (timeSinceLastClick > clickFailLimit) {
+                    showFeedbackToast(
+                        "Notamos que mueves el cursor pero no puedes interactuar. ¿Quieres reportarlo?",
+                        { issueType: "idle", message: "Usuario inactivo / interacción fallida" },
+                    );
+                } else {
+                    showFeedbackToast(
+                        "Notamos que llevas un rato sin interactuar. ¿Necesitas ayuda?",
+                        { issueType: "idle", message: "Usuario inactivo" },
+                    );
+                }
+            }, idleTimeLimit);
+        };
 
-	// --- Interceptar console.error y acumular errores sin spamear toasts ---
-	useEffect(() => {
-		const originalError = console.error;
+        const registerClick = () => {
+            lastClickTimeRef.current = Date.now();
+            resetIdleTimer();
+        };
 
-		console.error = (...args: unknown[]) => {
-			// Mantener salida en consola (para debugging en dev)
-			originalError(...args);
+        const events = ["mousemove", "keydown", "scroll"];
+        events.forEach((event) => window.addEventListener(event, resetIdleTimer));
+        window.addEventListener("click", registerClick);
 
-			// Serializamos el error recibido
-			const technicalError = args.map((a) => serializeArg(a)).join(" ");
+        resetIdleTimer();
 
-			// Evitar duplicados exactos en el buffer
-			const buf = errorBufferRef.current;
-			if (!buf.includes(technicalError)) buf.push(technicalError);
+        return () => {
+            events.forEach((event) => window.removeEventListener(event, resetIdleTimer));
+            window.removeEventListener("click", registerClick);
+            if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
+        };
+        // FIX: Añadimos la dependencia a la función memoizada
+    }, [showFeedbackToast]);
 
-			const now = Date.now();
-			const timeSinceLastToast = now - lastErrorToastAtRef.current;
-
-			// Si ya hay un toast visible, NO abrimos otro (pero sí seguimos acumulando en el buffer)
-			if (errorToastVisibleRef.current) {
-				// solo acumular
-				return;
-			}
-
-			// Si estamos dentro de la ventana de supresión, no mostrar notificación nueva
-			if (timeSinceLastToast < errorSuppressionWindow) {
-				// no mostrar, pero seguir acumulando
-				return;
-			}
-
-			// Mostrar notificación amigable (y permitirá enviar todo el buffer)
-			showFeedbackToast("Ocurrió un problema, pero ya lo estamos revisando.", {
-				issueType: "error",
-				message: "Errores detectados en la consola",
-			});
-		};
-
-		return () => {
-			console.error = originalError;
-		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [  ]);
-
-	// --- Lógica de inactividad (se mantiene igual que antes) ---
-	useEffect(() => {
-		const resetIdleTimer = () => {
-			if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
-			idleTimeoutRef.current = setTimeout(() => {
-				const now = Date.now();
-				const timeSinceLastClick = now - lastClickTimeRef.current;
-
-				if (timeSinceLastClick > clickFailLimit) {
-					// mueve ratón pero no clics válidos
-					showFeedbackToast(
-						"Notamos que mueves el ratón pero no puedes interactuar. ¿Quieres reportarlo?",
-						{
-							issueType: "idle",
-							message: "Usuario inactivo / interacción fallida",
-						},
-					);
-				} else {
-					// totalmente inactivo
-					showFeedbackToast(
-						"Notamos que llevas un rato sin interactuar. ¿Necesitas ayuda?",
-						{
-							issueType: "idle",
-							message: "Usuario inactivo",
-						},
-					);
-				}
-			}, idleTimeLimit);
-		};
-
-		const registerClick = () => {
-			lastClickTimeRef.current = Date.now();
-			resetIdleTimer();
-		};
-
-		["mousemove", "keydown", "scroll"].forEach((event) =>
-			window.addEventListener(event, resetIdleTimer),
-		);
-		window.addEventListener("click", registerClick);
-
-		resetIdleTimer(); // inicializa el timer
-
-		return () => {
-			["mousemove", "keydown", "scroll"].forEach((event) =>
-				window.removeEventListener(event, resetIdleTimer),
-			);
-			window.removeEventListener("click", registerClick);
-			if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
-		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [  ]);
-
-	return null;
+    return null;
 }
