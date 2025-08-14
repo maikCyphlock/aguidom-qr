@@ -1,12 +1,7 @@
 import { and, eq, isNull } from "drizzle-orm";
+import { ErrorBadRequest } from "@/app/api/Error";
 import { db } from "@/lib/db/index";
 import { qrTokens } from "@/lib/db/schema";
-
-import { eq, and, isNull } from "drizzle-orm";
-import { ErrorBadRequest } from "@/app/api/Error";
-
-import { QRError } from "../errors/qr-errors";
-
 
 export type QrToken = typeof qrTokens.$inferSelect;
 

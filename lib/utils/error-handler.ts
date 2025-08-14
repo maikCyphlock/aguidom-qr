@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-
 import { ZodError } from "zod";
 import { ErrorApi } from "@/app/api/Error";
 
-import { z } from "zod";
-import type { QRVerificationResponse } from "../../types/qr-verification";
-import { QRError } from "../errors/qr-errors";
+
 
 
 interface ErrorResponse {

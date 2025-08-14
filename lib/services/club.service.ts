@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { clubs, users } from "@/lib/db/schema";
-import { eq, isNull, and } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import {
   ErrorNotFound,

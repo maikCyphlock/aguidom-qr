@@ -1,14 +1,12 @@
 import { jwtVerify } from "jose";
-
-import { jwtPayloadSchema } from "../validation/schemas";
 import {
-  ErrorInternalServer,
-  ErrorUnauthorized,
-  ErrorBadRequest,
+	ErrorBadRequest,
+	ErrorInternalServer,
+	ErrorUnauthorized,
 } from "@/app/api/Error";
-
-import { QRError } from "../errors/qr-errors";
 import { jwtPayloadSchema } from "../validation/schemas";
+
+
 
 
 export async function verifyJWT(token: string) {
