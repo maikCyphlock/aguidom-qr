@@ -1,5 +1,5 @@
 import { useAuthStore } from '@/lib/stores/authStore'
-import { AuthenticatedUser } from '@/types/auth'
+import type { AuthenticatedUser } from '@/types/auth'
 
 export function useUser() {
   const { user, userProfile, isLoading, error } = useAuthStore()

@@ -1,8 +1,8 @@
+import type { Session, User } from '@supabase/supabase-js'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { User, Session } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
-import { UserProfile, AuthState } from '@/types/auth'
+import type { AuthState, UserProfile } from '@/types/auth'
 
 const supabase = createClient()
 

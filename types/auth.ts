@@ -1,4 +1,4 @@
-import { User, Session } from '@supabase/supabase-js'
+import type { Session, User } from '@supabase/supabase-js'
 
 // Tipo extendido que incluye datos de Supabase y Turso
 export interface UserProfile {

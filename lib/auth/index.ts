@@ -1,7 +1,7 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type AuthenticatedUserResult = {
 	shouldRedirect: boolean;
