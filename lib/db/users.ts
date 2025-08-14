@@ -1,6 +1,6 @@
+import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/index";
 import { users } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
 import { QRError } from "../errors/qr-errors";
 
 export type User = typeof users.$inferSelect;

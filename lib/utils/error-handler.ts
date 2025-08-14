@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { QRError } from "../errors/qr-errors";
 import type { QRVerificationResponse } from "../../types/qr-verification";
+import { QRError } from "../errors/qr-errors";
 
 export function handleError(
 	error: unknown,

@@ -1,6 +1,6 @@
 import { jwtVerify } from "jose";
-import { jwtPayloadSchema } from "../validation/schemas";
 import { QRError } from "../errors/qr-errors";
+import { jwtPayloadSchema } from "../validation/schemas";
 
 export async function verifyJWT(token: string) {
 	const SECRET_KEY = process.env.JWT_SECRET_KEY;
