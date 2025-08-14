@@ -23,6 +23,7 @@ const handleQrVerification = async (request: NextRequest) => {
 };
 
 // Exportamos la función POST que ejecuta el Effect
+// Este endpoint maneja la verificación de los códigos QR
 export async function POST(request: NextRequest) {
 	return await handleQrVerification(request);
 }

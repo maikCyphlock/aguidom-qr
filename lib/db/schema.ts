@@ -16,7 +16,9 @@ export const users = sqliteTable("users", {
 	updatedAt: integer("updated_at", { mode: "timestamp" }).default(
 		sql`(strftime('%s', 'now'))`,
 	),
-	role: text("role").default("user"),
+	role: text("role", { enum: ["admin", "user", "vigilante"] })
+		.default("user")
+		.notNull(),
 });
 
 export const clubs = sqliteTable("clubs", {
