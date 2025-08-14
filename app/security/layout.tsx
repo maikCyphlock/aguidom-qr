@@ -8,7 +8,7 @@ export default async function SecurityLayout({
 }) {
 	const { userFromDb } = await getAuthenticatedUserFromServer();
 
-	if (userFromDb.role !== "vigilante") {
+	if (userFromDb.role !== "admin") {
 		return redirect("/dashboard");
 	}
 

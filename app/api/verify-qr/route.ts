@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { requestSchema } from "@/lib/validation/schemas";
 import { verifyQRToken } from "@/lib/services/qr-verification";
-import { handleError } from "@/lib/utils/error-handler";
+import { apiErrorHandler } from "@/lib/utils/error-handler";
 
 const handleQrVerification = async (request: NextRequest) => {
 	console.log("[QR VERIFY] ▶️ Nueva petición recibida");
@@ -18,7 +18,7 @@ const handleQrVerification = async (request: NextRequest) => {
 		console.log("[QR VERIFY] ✅ Verificación exitosa");
 		return NextResponse.json(result);
 	} catch (error) {
-		return handleError(error);
+		return apiErrorHandler(error);
 	}
 };
 

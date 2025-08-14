@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
 
 		return NextResponse.json(results);
 	} catch (error) {
+		console.error("Error al buscar usuarios:", error);
 		return NextResponse.json(
 			{ error: "Failed to search for users" },
 			{ status: 500 },

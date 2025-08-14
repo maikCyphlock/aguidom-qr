@@ -7,8 +7,6 @@ import {
   ErrorBadRequest,
 } from "@/app/api/Error";
 
-import { QRError } from "../errors/qr-errors";
-import { jwtPayloadSchema } from "../validation/schemas";
 
 
 export async function verifyJWT(token: string) {

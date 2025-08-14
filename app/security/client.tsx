@@ -53,6 +53,7 @@ export default function SecurityClient() {
 				});
 			}
 		} catch (error) {
+			console.error("Error al verificar el código QR:", error);
 			setVerificationResult({
 				success: false,
 				message: "Error de red o del servidor",
@@ -89,6 +90,7 @@ export default function SecurityClient() {
 				message: result.message || result.error,
 			});
 		} catch (error) {
+			console.error("Error al registrar la entrada:", error);
 			setVerificationResult({
 				success: false,
 				message: "Error al registrar la entrada",
@@ -115,7 +117,7 @@ export default function SecurityClient() {
 							<div className="w-full max-w-xs mx-auto">
 								<Html5QrcodePlugin
 									fps={10}
-									qrbox={200}
+									
 									disableFlip={false}
 									qrCodeSuccessCallback={handleNewScanResult}
 								/>
