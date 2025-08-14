@@ -150,7 +150,6 @@ export function ErrorCatcher() {
     );
 
     // --- Interceptar console.error y acumular errores sin spamear toasts ---
-
     useEffect(() => {
         const originalError = console.error;
 
@@ -216,7 +215,8 @@ export function ErrorCatcher() {
             if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
         };
         // FIX: Añadimos la dependencia a la función memoizada
-    }, [showFeedbackToast]);
+	
+    }, [showFeedbackToast, idleTimeLimit, clickFailLimit]);
 
     return null;
 }

@@ -3,7 +3,6 @@ import { ErrorBadRequest } from "@/app/api/Error";
 import { db } from "@/lib/db/index";
 import { qrTokens } from "@/lib/db/schema";
 
-
 export type QrToken = typeof qrTokens.$inferSelect;
 
 export async function findValidToken(token: string): Promise<QrToken> {
