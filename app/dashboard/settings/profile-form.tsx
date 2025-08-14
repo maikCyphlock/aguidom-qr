@@ -9,7 +9,7 @@ import Dashboard from "@/components/dashboard";
 import type { User } from "@supabase/supabase-js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { users } from "@/lib/db/schema";
+import type { users } from "@/lib/db/schema";
 
 
 interface State {

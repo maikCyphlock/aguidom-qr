@@ -1,6 +1,6 @@
-import React from 'react'
-import Client from './client'
+
 import { getAuthenticatedUserFromServer } from '@/lib/auth/server'
+import Client from './client'
 
 async function page() {
     const { userFromDb } = await getAuthenticatedUserFromServer()

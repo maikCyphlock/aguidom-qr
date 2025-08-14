@@ -1,6 +1,7 @@
 // src/components/Html5QrcodePlugin.jsx
-import React, { useEffect } from "react";
+
 import { Html5QrcodeScanner } from "html5-qrcode";
+import React, { useEffect } from "react";
 
 const qrcodeRegionId = "html5qr-code-full-region";
 
