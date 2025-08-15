@@ -23,7 +23,7 @@ export async function verifyQRToken(
 	await findValidToken(request.token);
 
 	// 5. Marcar token como escaneado
-	await markTokenAsScanned(request.token, user.userId);
+	await markTokenAsScanned(request.token, user.userId, payload.clubId);
 
 	return {
 		saved: true,
