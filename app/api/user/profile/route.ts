@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { db } from '@/lib/db/index'
 import { users } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
+import { headers } from 'next/headers'
 
 export async function GET() {
   try {
@@ -35,7 +36,12 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      profile: userProfile
+      profile: userProfile,
+      headers: {
+        // Agregar caché de 20 segundo
+        "Cache-Control":   `public, max-age=20`,
+        "Expires":         new Date(Date.now() + 20000).toUTCString(),
+      },
     })
 
   } catch (error) {

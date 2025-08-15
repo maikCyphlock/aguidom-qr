@@ -43,18 +43,45 @@ export function useAuthSync() {
 
   // Refrescar al volver al foco/online
   useEffect(() => {
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible') {
+    // Evitar múltiples refresh simultáneos
+    const isRefreshingRef = { current: false }
+    // Debounce para consolidar múltiples eventos juntos (focus + visibility)
+    let debounceId: number | null = null
+
+    const safeRefresh = async () => {
+      if (isRefreshingRef.current) return
+      isRefreshingRef.current = true
+      try {
         await refreshUserProfile()
+      } finally {
+        isRefreshingRef.current = false
       }
     }
 
-    const handleFocus = async () => {
-      await refreshUserProfile()
+    const scheduleRefresh = () => {
+      if (debounceId) {
+        window.clearTimeout(debounceId)
+      }
+      debounceId = window.setTimeout(() => {
+        // Solo refrescar si la pestaña está visible
+        if (document.visibilityState === 'visible') {
+          void safeRefresh()
+        }
+      }, 300)
     }
 
-    const handleOnline = async () => {
-      await refreshUserProfile()
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        scheduleRefresh()
+      }
+    }
+
+    const handleFocus = () => {
+      scheduleRefresh()
+    }
+
+    const handleOnline = () => {
+      scheduleRefresh()
     }
 
     window.addEventListener('focus', handleFocus)
@@ -62,6 +89,7 @@ export function useAuthSync() {
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
     return () => {
+      if (debounceId) window.clearTimeout(debounceId)
       window.removeEventListener('focus', handleFocus)
       window.removeEventListener('online', handleOnline)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
@@ -71,11 +99,21 @@ export function useAuthSync() {
   // Polling ligero para detectar cambios del perfil en background
   useEffect(() => {
     const POLL_INTERVAL_MS = 60000
-    const intervalId = window.setInterval(() => {
-      refreshUserProfile().catch(() => {})
+    let isRefreshing = false
+    const intervalId = window.setInterval(async () => {
+      if (document.visibilityState !== 'visible') return
+      if (isRefreshing) return
+      isRefreshing = true
+      try {
+        await refreshUserProfile()
+      } finally {
+        isRefreshing = false
+      }
     }, POLL_INTERVAL_MS)
 
-    return () => window.clearInterval(intervalId)
+    return () => {
+      window.clearInterval(intervalId)
+    }
   }, [refreshUserProfile])
 
   return { user, session }
