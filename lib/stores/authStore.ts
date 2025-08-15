@@ -9,6 +9,7 @@ const supabase = createClient()
 interface AuthStore extends AuthState {
   // Actions
   signIn: (email: string, password: string) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
@@ -86,6 +87,29 @@ export const useAuthStore = create<AuthStore>()(
         } catch (error) {
           set({ 
             error: error instanceof Error ? error.message : 'Error al registrarse',
+            isLoading: false 
+          })
+        }
+      },
+
+      // Iniciar sesión con Google
+      signInWithGoogle: async () => {
+        try {
+          set({ isLoading: true, error: null })
+          
+          // Redirigir a la autenticación de Google
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: `${window.location.origin}/auth/callback`
+            }
+          })
+          
+          if (error) throw error
+          
+        } catch (error) {
+          set({ 
+            error: error instanceof Error ? error.message : 'Error al iniciar sesión con Google',
             isLoading: false 
           })
         }

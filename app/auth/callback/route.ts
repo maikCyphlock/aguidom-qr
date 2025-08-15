@@ -1,9 +1,9 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/lib/db/index";
 import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // Definimos la lógica completa de la ruta de API como un Effect.
 // Esto nos permite usar la inyección de dependencias y el manejo de errores de Effect-TS.
@@ -13,18 +13,23 @@ const handleAuthCallback = async (request: NextRequest) => {
 	const next = requestUrl.searchParams.get("next") ?? "/";
 	let redirectTo = `${requestUrl.origin}${next}`;
 
+	console.log({
+		code,
+		next,
+		redirectTo,
+	})
 	if (!code) {
 		// Si no hay código, devolvemos un error.
 		return NextResponse.redirect(`${requestUrl.origin}/auth/error`);
 	}
 
 	// Obtenemos el cliente de Supabase usando el tag de SupabaseClient
-	// que se proporcionará a este Effect.
+	
 	const supabase = await createSupabaseServerClient();
 
-	// Usamos Effect.promise para manejar la promesa de Supabase de manera segura.
 	const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
+	
 	if (error) {
 		// Si hay un error de Supabase, devolvemos un error.
 		console.error("Error de Supabase:", error);
@@ -34,7 +39,7 @@ const handleAuthCallback = async (request: NextRequest) => {
 	const user = data.user;
 
 	// Consultar si el usuario ya existe.
-	// Usamos Effect.promise para envolver la llamada asíncrona a la base de datos.
+	
 	const existingUser = await db
 		.select()
 		.from(users)
@@ -45,7 +50,7 @@ const handleAuthCallback = async (request: NextRequest) => {
 			try {
 				const userData = {
 					userId: user.id,
-					email: user.email ?? "", // Provide a default empty string if email is undefined
+					email: user.email ?? "", // email is already optional, but this makes it explicit
 					name: user.user_metadata.name ?? "", // Provide a default empty string
 					phone: user.phone ?? null, // phone is already optional, but this makes it explicit
 				};
@@ -64,8 +69,6 @@ const handleAuthCallback = async (request: NextRequest) => {
 };
 
 export async function GET(request: NextRequest) {
-	// Ejecutamos el Effect y devolvemos la respuesta.
-	// runPromise se encargará de ejecutar toda la lógica y devolver el NextResponse
-	// al final. Si ocurre algún error no capturado, también lo manejará.
+	
 	return await handleAuthCallback(request);
 }

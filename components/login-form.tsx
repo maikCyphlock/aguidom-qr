@@ -55,7 +55,7 @@ export function LoginForm({
 	const router = useRouter();
 	const cardRef = useRef<HTMLDivElement>(null);
 	
-	const { signIn, isLoading, error, clearError } = useAuthStore();
+	const { signIn, signInWithGoogle, isLoading, error, clearError } = useAuthStore();
 
 	const navigateTo = (url: string) => {
 		router.push(url);
@@ -80,10 +80,12 @@ export function LoginForm({
 	const handleGoogleSignIn = async (e: React.MouseEvent) => {
 		e.preventDefault();
 		clearError();
-		
-		// Por ahora, redirigir a la página de callback de Google
-		// Esto se puede implementar más adelante con Zustand
-		window.location.href = `${window.location.origin}/auth/callback`;
+		try {
+			// Usar el método del store de autenticación
+			await signInWithGoogle();
+		} catch (error) {
+			console.error('Error al iniciar sesión con Google:', error);
+		}
 	};
 
 	return (
