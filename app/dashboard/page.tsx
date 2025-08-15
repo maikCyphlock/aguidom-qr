@@ -11,13 +11,13 @@ export default function DashboardPage() {
 	return (
 		<Dashboard>
 			<div className="flex w-full min-h-screen bg-muted/20">
-				<main className="flex-1 p-6">
-					<h1 className="text-2xl font-bold mb-6">Mi perfil</h1>
+				<main className="flex-1 p-4 sm:p-6">
+					<h1 className="text-xl sm:text-2xl font-bold mb-6">Mi perfil</h1>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						<Card className="col-span-1 md:col-span-2">
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+						<Card className="lg:col-span-2">
 							<CardHeader className="border-b pb-4">
-								<CardTitle className="text-xl font-bold">
+								<CardTitle className="text-lg sm:text-xl font-bold">
 									Perfil de usuario
 								</CardTitle>
 								<p className="text-sm text-muted-foreground">
@@ -34,32 +34,34 @@ export default function DashboardPage() {
 									</Avatar>
 									<div>
 										<p className="text-xs text-muted-foreground">Nombre</p>
-										<p className="font-medium">{user?.user_metadata?.full_name || "Usuario"}</p>
+										<p className="font-medium truncate">
+											{user?.user_metadata?.full_name || "Usuario"}
+										</p>
 									</div>
 								</div>
 
 								<div className="grid grid-cols-[auto_1fr] items-center gap-4 p-3 rounded-lg border bg-muted/30">
-									<div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10">
+									<div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 flex-shrink-0">
 										📧
 									</div>
 									<div>
 										<p className="text-xs text-muted-foreground">Email</p>
-										<p className="font-medium">{user?.email}</p>
+										<p className="font-medium truncate">{user?.email}</p>
 									</div>
 								</div>
 
 								<div className="grid grid-cols-[auto_1fr] items-center gap-4 p-3 rounded-lg border bg-muted/30">
-									<div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10">
+									<div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 flex-shrink-0">
 										🆔
 									</div>
 									<div>
 										<p className="text-xs text-muted-foreground">ID de Usuario</p>
-										<p className="font-medium">{user?.id || "No disponible"}</p>
+										<p className="font-medium truncate">{user?.id || "No disponible"}</p>
 									</div>
 								</div>
 
 								<div className="grid grid-cols-[auto_1fr] items-center gap-4 p-3 rounded-lg border bg-muted/30">
-									<div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10">
+									<div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 flex-shrink-0">
 										📅
 									</div>
 									<div>

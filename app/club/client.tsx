@@ -80,16 +80,18 @@ export default function ClubClient({
 			{/* Header */}
 			<header className="border-b border-gray-200 bg-white">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="flex justify-between items-center h-16">
+					<div className="flex flex-wrap justify-between items-center py-4 gap-4">
 						<div className="flex items-center space-x-3">
-							<div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+							<div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center flex-shrink-0">
 								<span className="text-white font-bold text-lg">A</span>
 							</div>
 							<div>
-								<h1 className="text-xl font-semibold text-gray-900">
+								<h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
 									{club.name}
 								</h1>
-								<p className="text-sm text-gray-500">Sistema de Asistencias</p>
+								<p className="text-xs sm:text-sm text-gray-500">
+									Sistema de Asistencias
+								</p>
 							</div>
 						</div>
 						<div className="flex items-center space-x-1">
@@ -103,7 +105,7 @@ export default function ClubClient({
 			{/* Navigation */}
 			<nav className="border-b border-gray-200 bg-white">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="flex space-x-8">
+					<div className="flex flex-wrap gap-x-4 gap-y-2 sm:space-x-8">
 						{[
 							{ id: "dashboard", label: "Dashboard", icon: Calendar },
 							{ id: "scan", label: "Escanear QR", icon: QrCode },
