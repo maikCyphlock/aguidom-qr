@@ -3,7 +3,6 @@ import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { db } from '@/lib/db/index'
 import { users } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import { headers } from 'next/headers'
 
 export async function GET() {
   try {
