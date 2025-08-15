@@ -1,4 +1,8 @@
 // app/page.tsx
+
+import { CheckCircle, QrCode, Users } from "lucide-react";
+import Image from 'next/image';
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -7,13 +11,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle, QrCode, Users } from "lucide-react";
 import { db } from "@/lib/db";
 import { clubs } from "@/lib/db/schema";
-
-import Image from 'next/image';
 
 export default async function Home() {
 	const Clubs = await db.select().from(clubs);
@@ -21,7 +21,7 @@ export default async function Home() {
 	return (
 		<div className="min-h-screen bg-background text-foreground">
 			{/* Header */}
-		
+
 			<header className="container mx-auto px-4 py-6 flex justify-between items-center">
 				<div className="flex items-center space-x-2">
 					<Image
