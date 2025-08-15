@@ -8,31 +8,32 @@ export function useAuthSync() {
   const { user, session, syncUserProfile, refreshUserProfile, setUser, setSession } = useAuthStore()
 
   useEffect(() => {
-    // Obtener sesión inicial
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        setSession(session)
-        setUser(session.user)
-        // Sincronizar perfil del usuario
-        if (session.user.email) {
-          await syncUserProfile(session.user.email)
+    // Obtener usuario autenticado inicial de forma segura
+    const getInitialUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser()
+      if (error) return
+      if (user) {
+        setUser(user)
+        setSession((await supabase.auth.getSession()).data.session ?? null)
+        if (user.email) {
+          await syncUserProfile(user.email)
         }
       }
     }
 
-    getInitialSession()
+    getInitialUser()
 
     // Escuchar cambios en la autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        // Aunque recibimos session del callback, preferimos validar el usuario con getUser
+        const { data: { user } } = await supabase.auth.getUser()
         setSession(session)
-        setUser(session?.user ?? null)
+        setUser(user ?? null)
         
-        if (session?.user?.email) {
-          await syncUserProfile(session.user.email)
+        if (user?.email) {
+          await syncUserProfile(user.email)
         } else {
-          // Limpiar perfil si no hay sesión
           useAuthStore.getState().setUserProfile(null)
         }
       }

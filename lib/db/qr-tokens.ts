@@ -21,9 +21,7 @@ export async function findValidToken(token: string): Promise<QrToken> {
 
 export async function markTokenAsScanned(token: string, userId: string, clubId: string) {
 	await db.transaction(async (tx) => {
-		tx.rollback()
-	
-		
+		// Ejecutar operaciones atómicamente sin forzar rollback
 		await tx.insert(attendance).values({
 			attendanceId: nanoid(),
 			deviceId: token,
@@ -32,14 +30,19 @@ export async function markTokenAsScanned(token: string, userId: string, clubId: 
 			userId: userId,
 			clubId: clubId,
 		})
-		await tx
-		.update(qrTokens)
-		.set({
-			// schema has scannedAt as text, store unix seconds as string
-			scannedAt: String(Math.floor(Date.now() / 1000)),
-			userId: userId,
-		})
-		.where(eq(qrTokens.token, token))
-		.returning();
+		const updated = await tx
+			.update(qrTokens)
+			.set({
+				// schema has scannedAt as text, store unix seconds as string
+				scannedAt: String(Math.floor(Date.now() / 1000)),
+				userId: userId,
+			})
+			.where(and(eq(qrTokens.token, token), isNull(qrTokens.scannedAt)))
+			.returning();
+
+		if (updated.length === 0) {
+			// No se actualizó ninguna fila: token inexistente o ya escaneado => rollback implícito
+			throw new ErrorBadRequest("Token already scanned or invalid");
+		}
 	});
 }

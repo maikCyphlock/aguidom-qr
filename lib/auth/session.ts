@@ -3,12 +3,11 @@ import { ErrorUnauthorized } from "@/app/api/Error";
 
 export async function getUserEmail(): Promise<string> {
 	const supabase = await createSupabaseServerClient();
-	const { data: sessionData } = await supabase.auth.getSession();
+	const { data, error } = await supabase.auth.getUser();
 
-	const email = sessionData?.session?.user?.email;
-	if (!email) {
-		throw new ErrorUnauthorized("Unauthorized: no email found in session");
+	if (error || !data?.user?.email) {
+		throw new ErrorUnauthorized("Unauthorized: no email found in authenticated user");
 	}
 
-	return email;
+	return data.user.email;
 }
