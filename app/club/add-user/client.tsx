@@ -47,7 +47,7 @@ export default function Client({ clubId }: ClientProps) {
     async function fetchUsers() {
       try {
         const response = await fetch('/api/club/user');
-        const data: typeof users.$inferSelect[] = await response.json();
+        const {data}: {data:typeof users.$inferSelect[]} = await response.json();
         if (response.ok) {
           setUsersWithoutClub(data);
         } else {
