@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 const supabase = createClient()
 
 export function useAuthSync() {
-  const { user, session, syncUserProfile, setUser, setSession } = useAuthStore()
+  const { user, session, syncUserProfile, refreshUserProfile, setUser, setSession } = useAuthStore()
 
   useEffect(() => {
     // Obtener sesión inicial
@@ -25,7 +25,7 @@ export function useAuthSync() {
 
     // Escuchar cambios en la autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
         
@@ -40,6 +40,43 @@ export function useAuthSync() {
 
     return () => subscription.unsubscribe()
   }, [setUser, setSession, syncUserProfile])
+
+  // Refrescar al volver al foco/online
+  useEffect(() => {
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        await refreshUserProfile()
+      }
+    }
+
+    const handleFocus = async () => {
+      await refreshUserProfile()
+    }
+
+    const handleOnline = async () => {
+      await refreshUserProfile()
+    }
+
+    window.addEventListener('focus', handleFocus)
+    window.addEventListener('online', handleOnline)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('online', handleOnline)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [refreshUserProfile])
+
+  // Polling ligero para detectar cambios del perfil en background
+  useEffect(() => {
+    const POLL_INTERVAL_MS = 60000
+    const intervalId = window.setInterval(() => {
+      refreshUserProfile().catch(() => {})
+    }, POLL_INTERVAL_MS)
+
+    return () => window.clearInterval(intervalId)
+  }, [refreshUserProfile])
 
   return { user, session }
 }
