@@ -176,8 +176,8 @@ export const useAuthStore = create<AuthStore>()(
           const response = await fetch('/api/user/profile', {
             headers: {
               // Requerir caché de 20 segundos
-              "Cache-Control":   `public, max-age=20`,
-              "Expires":         new Date(Date.now() + 20000).toUTCString(),
+              "Cache-Control":   `public, max-age=10`,
+              "Expires":         new Date(Date.now() + 10000).toUTCString(),
             }
           })
           
