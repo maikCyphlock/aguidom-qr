@@ -3,10 +3,23 @@
 import Dashboard from "@/components/dashboard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuthStore } from "@/lib/stores";
+import { useUser } from "@/lib/hooks/use-auth";
 
 export default function DashboardPage() {
-	const { user } = useAuthStore();
+  const { data: user, isLoading } = useUser();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    window.location.href = '/auth/login';
+    return null;
+  }
 
 	return (
 		<Dashboard>
@@ -29,13 +42,13 @@ export default function DashboardPage() {
 									<Avatar className="h-10 w-10">
 										<AvatarImage src={user?.user_metadata?.avatar_url} />
 										<AvatarFallback>
-											{user?.user_metadata?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
+											{(user.user_metadata?.full_name || user.email)?.[0]?.toUpperCase() || 'U'}
 										</AvatarFallback>
 									</Avatar>
 									<div>
 										<p className="text-xs text-muted-foreground">Nombre</p>
 										<p className="font-medium truncate">
-											{user?.user_metadata?.full_name || "Usuario"}
+											{user.user_metadata?.full_name || 'Usuario'}
 										</p>
 									</div>
 								</div>
@@ -46,7 +59,7 @@ export default function DashboardPage() {
 									</div>
 									<div>
 										<p className="text-xs text-muted-foreground">Email</p>
-										<p className="font-medium truncate">{user?.email}</p>
+										<p className="font-medium truncate">{user.email}</p>
 									</div>
 								</div>
 
@@ -58,7 +71,7 @@ export default function DashboardPage() {
 									<div>
 										<p className="text-xs text-muted-foreground">Miembro desde</p>
 										<p className="font-medium">
-											{user?.created_at ? new Date(user.created_at).toLocaleDateString() : "No disponible"}
+											{user.created_at ? new Date(user.created_at).toLocaleDateString() : 'No disponible'}
 										</p>
 									</div>
 								</div>

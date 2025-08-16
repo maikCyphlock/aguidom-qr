@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/auth-provider";
 import { NotificationToast } from "@/components/notification-toast";
 import { ReactQueryProvider } from "@/components/react-query-provider";
+import { AuthSyncWrapper } from "@/components/auth-sync-wrapper";
 
 const defaultUrl = process.env.VERCEL_URL
 	? `https://${process.env.VERCEL_URL}`
@@ -25,6 +26,7 @@ const InterSans = Inter({
 	subsets: ["latin"],
 });
 
+
 export default function RootLayout({
 	children,
 }: Readonly<{
@@ -35,11 +37,13 @@ export default function RootLayout({
 			<body className={`${InterSans.className} antialiased min-h-screen`}>
 				<ReactQueryProvider>
 					<AuthProvider>
-						<AppBar />
-						{children}
-						<ErrorCatcher />
-						<Toaster />
-						<NotificationToast />
+						<AuthSyncWrapper>
+							<AppBar />
+							{children}
+							<ErrorCatcher />
+							<Toaster />
+							<NotificationToast />
+						</AuthSyncWrapper>
 					</AuthProvider>
 				</ReactQueryProvider>
 			</body>

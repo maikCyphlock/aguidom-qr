@@ -7,14 +7,13 @@ import { bottomNavRoutes } from "@/config/navigation";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuthStore } from "@/lib/stores";
-
+import { useUser } from "@/lib/hooks/use-auth";
 
 export default function AppBar() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const navRef = useRef<HTMLDivElement>(null);
-	const { user } = useAuthStore();
+	const { data: user } = useUser();
 
 	useEffect(() => {
 		if (navRef.current) {
