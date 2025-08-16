@@ -5,9 +5,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import type { UserProfile, SyncUserData } from '@/types/user';
-import { db } from '../db';
-import { eq } from 'drizzle-orm';
-import { users } from '../db/schema';
 
 interface AuthUserData {
   id: string;

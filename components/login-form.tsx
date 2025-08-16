@@ -53,7 +53,7 @@ export function LoginForm({
 }: React.ComponentPropsWithoutRef<"div">) {
 	const [form, setForm] = useState({ email: "", password: "" });
 	const [showPassword, setShowPassword] = useState(false);
-	const [isRedirecting, setIsRedirecting] = useState(false);
+
 	const [error, setError] = useState<string | null>(null);
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -68,7 +68,7 @@ export function LoginForm({
 	useEffect(() => {
 		if (user) {
 			const redirectTo = searchParams.get('redirect') || '/';
-			setIsRedirecting(true);
+	
 			router.push(redirectTo);
 		}
 	}, [user, router, searchParams]);
@@ -183,20 +183,8 @@ export function LoginForm({
 							<p className="text-sm text-red-500 text-center">{error}</p>
 						)}
 
-						<Button type="submit" className="w-full" disabled={signIn.isPending}>
-							{isRedirecting ? (
-							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Redirigiendo...
-							</>
-						) : signIn.isPending ? (
-							<>
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-								Ingresando...
-							</>
-						) : (
-							"Ingresar"
-						)}
+						<Button type="submit" className="w-full" >
+							Ingresar 
 						</Button>
 					</form>
 
@@ -215,7 +203,7 @@ export function LoginForm({
 						variant="outline"
 						className="w-full"
 						onClick={handleGoogleSignIn}
-						disabled={isRedirecting || signIn.isPending || isGoogleLoading}
+
 					>
 						{isGoogleLoading ? (
 						  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
