@@ -41,7 +41,7 @@ function formatTime(value: number | string): string {
 	const secs = typeof value === "string" ? parseInt(value, 10) : value;
 	if (!Number.isFinite(secs)) return "";
 	const d = new Date(secs * 1000);
-	return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+	return d.toLocaleTimeString([], {month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", hour12: true});
 }
 
 export default function ClubClient({

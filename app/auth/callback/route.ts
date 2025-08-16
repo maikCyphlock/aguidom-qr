@@ -61,7 +61,7 @@ const handleAuthCallback = async (request: NextRequest) => {
 		
 				await db.insert(users).values(userData);
 				console.log(`Nuevo usuario insertado: ${user.email}`);
-				redirectTo = `${requestUrl.origin}/auth/sign-up-success`;
+				redirectTo = `${requestUrl.origin}/dashboard`;
 			} catch (dbError) {
 				console.error("Error al insertar el usuario en Drizzle:", dbError);
 				return NextResponse.redirect(`${requestUrl.origin}/auth/error`);
