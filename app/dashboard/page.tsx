@@ -1,8 +1,8 @@
 "use client";
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Dashboard from "@/components/dashboard";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/lib/stores";
 
 export default function DashboardPage() {
@@ -14,7 +14,7 @@ export default function DashboardPage() {
 				<main className="flex-1 p-4 sm:p-6">
 					<h1 className="text-xl sm:text-2xl font-bold mb-6">Mi perfil</h1>
 
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<div className="flex flex-col lg:flex-cols-3 gap-6">
 						<Card className="lg:col-span-2">
 							<CardHeader className="border-b pb-4">
 								<CardTitle className="text-lg sm:text-xl font-bold">
@@ -24,8 +24,8 @@ export default function DashboardPage() {
 									Información básica de tu cuenta
 								</p>
 							</CardHeader>
-							<CardContent className="mt-6 grid gap-4">
-								<div className="grid grid-cols-[auto_1fr] items-center gap-4 p-3 rounded-lg border bg-muted/30">
+							<CardContent className="mt-6 flex flex-col gap-4">
+								<div className="flex  items-center gap-4 p-3 rounded-lg border bg-muted/30">
 									<Avatar className="h-10 w-10">
 										<AvatarImage src={user?.user_metadata?.avatar_url} />
 										<AvatarFallback>
@@ -40,8 +40,8 @@ export default function DashboardPage() {
 									</div>
 								</div>
 
-								<div className="grid grid-cols-[auto_1fr] items-center gap-4 p-3 rounded-lg border bg-muted/30">
-									<div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 flex-shrink-0">
+								<div className="flex  flex-wrap items-center gap-4 p-3 rounded-lg border bg-muted/30">
+									<div className="flex  items-center justify-center h-10 w-10 rounded-full bg-primary/10 flex-shrink">
 										📧
 									</div>
 									<div>
@@ -50,17 +50,8 @@ export default function DashboardPage() {
 									</div>
 								</div>
 
-								<div className="grid grid-cols-[auto_1fr] items-center gap-4 p-3 rounded-lg border bg-muted/30">
-									<div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 flex-shrink-0">
-										🆔
-									</div>
-									<div>
-										<p className="text-xs text-muted-foreground">ID de Usuario</p>
-										<p className="font-medium truncate">{user?.id || "No disponible"}</p>
-									</div>
-								</div>
 
-								<div className="grid grid-cols-[auto_1fr] items-center gap-4 p-3 rounded-lg border bg-muted/30">
+								<div className="flex  flex-wrap items-center gap-4 p-3 rounded-lg border bg-muted/30">
 									<div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary/10 flex-shrink-0">
 										📅
 									</div>

@@ -1,8 +1,10 @@
 import { useAuthStore } from '@/lib/stores/authStore'
 import type { AuthenticatedUser } from '@/types/auth'
+import { useUserProfileQuery } from '@/lib/hooks/use-user-profile-query'
 
 export function useUser() {
-  const { user, userProfile, isLoading, error } = useAuthStore()
+  const { user } = useAuthStore()
+  const { data: userProfile, isLoading, error } = useUserProfileQuery()
 
   // Usuario autenticado con perfil completo
   const authenticatedUser: AuthenticatedUser | null = user && userProfile 

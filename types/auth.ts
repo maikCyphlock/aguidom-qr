@@ -17,7 +17,6 @@ export interface UserProfile {
 export interface AuthState {
   user: User | null
   session: Session | null
-  userProfile: UserProfile | null
   isLoading: boolean
   error: string | null
 }

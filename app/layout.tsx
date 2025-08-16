@@ -7,6 +7,7 @@ import AppBar from "@/components/appBar";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/components/auth-provider";
 import { NotificationToast } from "@/components/notification-toast";
+import { ReactQueryProvider } from "@/components/react-query-provider";
 
 const defaultUrl = process.env.VERCEL_URL
 	? `https://${process.env.VERCEL_URL}`
@@ -32,13 +33,15 @@ export default function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className={`${InterSans.className} antialiased min-h-screen`}>
-				<AuthProvider>
-					<AppBar />
-					{children}
-					<ErrorCatcher />
-					<Toaster />
-					<NotificationToast />
-				</AuthProvider>
+				<ReactQueryProvider>
+					<AuthProvider>
+						<AppBar />
+						{children}
+						<ErrorCatcher />
+						<Toaster />
+						<NotificationToast />
+					</AuthProvider>
+				</ReactQueryProvider>
 			</body>
 		</html>
 	);

@@ -18,6 +18,7 @@ import { LogOut, User, Settings, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/lib/stores";
 import Link from "next/link";
+import { useUserProfileQuery } from "@/lib/hooks/use-user-profile-query";
 
 
 export default function DashboardSidebar({
@@ -26,13 +27,15 @@ export default function DashboardSidebar({
 }: {
 	children: React.ReactNode;	
 }) {
-	const { user, signOut,userProfile } = useAuthStore();
-
+	const { user, signOut,  } = useAuthStore();
+	const {data: profile } = useUserProfileQuery()
 	return (
 		<SidebarProvider>
 			{/* Botón para abrir/cerrar */}
+			
 			<SidebarTrigger className="m-2" />
 			<Sidebar collapsible="icon" >
+				
 				{/* Header con info de usuario */}
 				<SidebarHeader>
 					<div className="flex items-center gap-3">
@@ -72,7 +75,7 @@ export default function DashboardSidebar({
 									Asistencia
 								</Button>
 							</Link>
-							<Link href={`/club/${userProfile?.clubId}`}>
+							<Link href={`/club/${profile?.clubId || ''}`}>
 								<Button variant="ghost" className="w-full justify-start">
 									<Calendar className="w-4 h-4 mr-2" />
 									Mi club
@@ -88,7 +91,10 @@ export default function DashboardSidebar({
 						type="button"
 						variant="destructive"
 						className="w-full justify-start"
-						onClick={signOut}
+						onClick={async() => {
+							await signOut()
+							window.location.reload()
+						}}
 					>
 						<LogOut className="w-4 h-4 mr-2" />
 						Cerrar sesión

@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
-import { useState, useRef } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/lib/stores";
 
 
@@ -52,10 +52,22 @@ export function LoginForm({
 }: React.ComponentPropsWithoutRef<"div">) {
 	const [form, setForm] = useState({ email: "", password: "" });
 	const [showPassword, setShowPassword] = useState(false);
+	const [isRedirecting, setIsRedirecting] = useState(false);
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const cardRef = useRef<HTMLDivElement>(null);
 	
-	const { signIn, signInWithGoogle, isLoading, error, clearError } = useAuthStore();
+	const { signIn, signInWithGoogle, isLoading, error, clearError, getCurrentUser } = useAuthStore();
+
+	// Handle redirect after successful login
+	useEffect(() => {
+		const currentUser = getCurrentUser();
+		if (currentUser) {
+			const redirectTo = searchParams.get('redirect') || '/';
+			setIsRedirecting(true);
+			router.push(redirectTo);
+		}
+	}, [getCurrentUser, router, searchParams]);
 
 	const navigateTo = (url: string) => {
 		router.push(url);
@@ -158,7 +170,14 @@ export function LoginForm({
 						)}
 
 						<Button type="submit" className="w-full" disabled={isLoading}>
-							{isLoading ? "Ingresando..." : "Ingresar"}
+							{isLoading || isRedirecting ? (
+								<>
+									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+									{isRedirecting ? 'Redirigiendo...' : 'Ingresando...'}
+								</>
+							) : (
+								"Ingresar"
+							)}
 						</Button>
 					</form>
 
@@ -177,7 +196,7 @@ export function LoginForm({
 						variant="outline"
 						className="w-full"
 						onClick={handleGoogleSignIn}
-						disabled={isLoading}
+						disabled={isLoading || isRedirecting}
 					>
 						<GoogleIcon className="mr-2 h-5 w-5" />
 						Google

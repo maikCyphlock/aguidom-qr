@@ -13,6 +13,10 @@ const handleAuthCallback = async (request: NextRequest) => {
 	const next = requestUrl.searchParams.get("next") ?? "/";
 	let redirectTo = `${requestUrl.origin}${next}`;
 
+	if(process. env.NODE_ENV === 'development') {
+		redirectTo = `${requestUrl.origin}/dashboard`
+	}
+
 	console.log({
 		code,
 		next,
