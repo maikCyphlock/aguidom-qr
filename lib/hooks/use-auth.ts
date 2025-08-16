@@ -94,7 +94,7 @@ export function useAuthSync() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [queryClient, router, supabase.auth.onAuthStateChange]);
+  }, [queryClient, router, supabase.auth]);
 }
 
 export function useUser() {

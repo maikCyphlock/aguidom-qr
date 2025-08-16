@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User, Settings, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
-import { useUser, useUserProfile, useSignOut } from "@/lib/hooks/use-auth";
+import { useUser, useUserProfile } from "@/lib/hooks/use-auth";
 import { useRouter } from "next/navigation";
 
 export default function DashboardSidebar({
@@ -29,7 +29,7 @@ export default function DashboardSidebar({
   const { data: user, isLoading: isUserLoading } = useUser();
   const { data: profile, isLoading: isProfileLoading } = useUserProfile();
 
-  const signOut = useSignOut();
+ 
   
   // Handle loading and error states
   if (isUserLoading || isProfileLoading) {
