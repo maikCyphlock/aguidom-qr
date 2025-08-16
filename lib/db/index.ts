@@ -1,13 +1,17 @@
 import { drizzle } from "drizzle-orm/libsql";
 import { env } from "@/lib/config/env";
+import * as schema from "./schema";
 
 // Esta configuración solo debe usarse en el servidor
 export const db = drizzle({
-	connection: {
-		url: env.TURSO_DATABASE_URL,
-		authToken: env.TURSO_AUTH_TOKEN,
-	},
+  connection: {
+    url: env.TURSO_DATABASE_URL,
+    authToken: env.TURSO_AUTH_TOKEN,
+  },
+  schema
 });
+
+export type Database = typeof db;
 
 // Función para verificar si estamos en el servidor
 export const isServer = typeof window === 'undefined'
