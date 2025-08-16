@@ -14,7 +14,8 @@ import { Label } from "@/components/ui/label";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useAuthStore } from "@/lib/stores";
+import { useSignIn, useSignInWithGoogle, useUser } from "@/lib/hooks/use-auth";
+import { useToast } from "@/lib/utils/notifications";
 
 
 const GoogleIcon = (props: React.ComponentProps<"svg">) => (
@@ -53,25 +54,24 @@ export function LoginForm({
 	const [form, setForm] = useState({ email: "", password: "" });
 	const [showPassword, setShowPassword] = useState(false);
 	const [isRedirecting, setIsRedirecting] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const cardRef = useRef<HTMLDivElement>(null);
-	
-	const { signIn, signInWithGoogle, isLoading, error, clearError, getCurrentUser } = useAuthStore();
+	const { data: user } = useUser();
+	const signIn = useSignIn();
+	const signInWithGoogle = useSignInWithGoogle();
+	const toast = useToast();
+	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
 	// Handle redirect after successful login
 	useEffect(() => {
-		const currentUser = getCurrentUser();
-		if (currentUser) {
+		if (user) {
 			const redirectTo = searchParams.get('redirect') || '/';
 			setIsRedirecting(true);
 			router.push(redirectTo);
 		}
-	}, [getCurrentUser, router, searchParams]);
-
-	const navigateTo = (url: string) => {
-		router.push(url);
-	};
+	}, [user, router, searchParams]);
 
 	const handleChange =
 		(field: "email" | "password") => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -79,24 +79,38 @@ export function LoginForm({
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
-		clearError();
+		setError(null);
 		
 		try {
-			await signIn(form.email, form.password);
-			navigateTo("/");
-		} catch (error) {
-			console.error('Error al iniciar sesión:', error);
+			const { error } = await signIn(form.email, form.password);
+			if (error) {
+				setError(error.message || 'Error al iniciar sesión');
+			} else {
+				toast('¡Bienvenido!', { type: 'success' });
+			}
+		} catch (err) {
+			console.error('Error al iniciar sesión:', err);
+			setError('Ocurrió un error al intentar iniciar sesión');
 		}
 	};
 
 	const handleGoogleSignIn = async (e: React.MouseEvent) => {
 		e.preventDefault();
-		clearError();
+		setError(null);
+		setIsGoogleLoading(true);
+		
 		try {
-			// Usar el método del store de autenticación
-			await signInWithGoogle();
-		} catch (error) {
-			console.error('Error al iniciar sesión con Google:', error);
+			const { error } = await signInWithGoogle();
+			if (error) {
+				setError(error.message || 'Error al iniciar sesión con Google');
+				toast('Error al iniciar sesión con Google', { type: 'error' });
+			}
+		} catch (err) {
+			console.error('Error al iniciar sesión con Google:', err);
+			setError('Ocurrió un error al intentar iniciar sesión con Google');
+			toast('Error al iniciar sesión con Google', { type: 'error' });
+		} finally {
+			setIsGoogleLoading(false);
 		}
 	};
 
@@ -169,15 +183,20 @@ export function LoginForm({
 							<p className="text-sm text-red-500 text-center">{error}</p>
 						)}
 
-						<Button type="submit" className="w-full" disabled={isLoading}>
-							{isLoading || isRedirecting ? (
-								<>
-									<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-									{isRedirecting ? 'Redirigiendo...' : 'Ingresando...'}
-								</>
-							) : (
-								"Ingresar"
-							)}
+						<Button type="submit" className="w-full" disabled={signIn.isPending}>
+							{isRedirecting ? (
+							<>
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								Redirigiendo...
+							</>
+						) : signIn.isPending ? (
+							<>
+								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+								Ingresando...
+							</>
+						) : (
+							"Ingresar"
+						)}
 						</Button>
 					</form>
 
@@ -196,10 +215,14 @@ export function LoginForm({
 						variant="outline"
 						className="w-full"
 						onClick={handleGoogleSignIn}
-						disabled={isLoading || isRedirecting}
+						disabled={isRedirecting || signIn.isPending || isGoogleLoading}
 					>
-						<GoogleIcon className="mr-2 h-5 w-5" />
-						Google
+						{isGoogleLoading ? (
+						  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+						) : (
+						  <GoogleIcon className="mr-2 h-5 w-5" />
+						)}
+						{isGoogleLoading ? 'Iniciando sesión...' : 'Google'}
 					</Button>
 
 					<p className="mt-4 text-sm text-center text-muted-foreground">

@@ -16,25 +16,34 @@ import {
 import { Button } from "@/components/ui/button";
 import { LogOut, User, Settings, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuthStore } from "@/lib/stores";
 import Link from "next/link";
-import { useUserProfileQuery } from "@/lib/hooks/use-user-profile-query";
-
-import { createClient } from "@/lib/supabase/client";
+import { useUser, useUserProfile, useSignOut } from "@/lib/hooks/use-auth";
 import { useRouter } from "next/navigation";
 
-
-
 export default function DashboardSidebar({
-	children,
-
+  children,
 }: {
-	children: React.ReactNode;	
+  children: React.ReactNode;	
 }) {
-	const router = useRouter()
-	const supabase = createClient()
-	const { user, signOut  } = useAuthStore();
-	const {data: profile } = useUserProfileQuery()
+  const router = useRouter();
+  const { data: user, isLoading: isUserLoading } = useUser();
+  const { data: profile, isLoading: isProfileLoading } = useUserProfile();
+  console.log({profile})
+  const signOut = useSignOut();
+  
+  // Handle loading and error states
+  if (isUserLoading || isProfileLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    router.push('/auth/login');
+    return null;
+  }
 	return (
 		<SidebarProvider>
 			{/* Botón para abrir/cerrar */}
@@ -46,13 +55,13 @@ export default function DashboardSidebar({
 				<SidebarHeader>
 					<div className="flex items-center gap-3">
 						<Avatar>
-							<AvatarImage src={user?.user_metadata?.avatar_url} />
-							<AvatarFallback>{user?.user_metadata?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || "U"}</AvatarFallback>
+							<AvatarImage src={user.user_metadata?.avatar_url} />
+							<AvatarFallback>{(user.user_metadata?.full_name || user.email)?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
 						</Avatar>
 						<div className="truncate">
-							<p className="font-semibold">{user?.user_metadata?.full_name || "Usuario"}</p>
+							<p className="font-semibold">{user.user_metadata?.full_name || 'Usuario'}</p>
 							<p className="text-xs text-muted-foreground truncate">
-								{user?.email}
+								{user.email}
 							</p>
 						</div>
 					</div>
@@ -97,7 +106,10 @@ export default function DashboardSidebar({
 						type="button"
 						variant="destructive"
 						className="w-full justify-start"
-						onClick={() => signOut()}
+						onClick={async () => {
+						  await signOut();
+						  router.push('/auth/login');
+						}}
 					>
 						<LogOut className="w-4 h-4 mr-2" />
 						Cerrar sesión

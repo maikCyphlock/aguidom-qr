@@ -1,8 +1,18 @@
 "use client";
 
-import { useUIStore } from "@/lib/stores";
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+
+type NotificationType = 'success' | 'error' | 'warning' | 'info';
+
+interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message?: string;
+}
 
 const notificationIcons = {
   success: CheckCircle,
@@ -19,7 +29,32 @@ const notificationColors = {
 };
 
 export function NotificationToast() {
-  const { notifications, removeNotification } = useUIStore();
+  const queryClient = useQueryClient();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  // Subscribe to notifications in the query cache
+  useEffect(() => {
+    const queryCache = queryClient.getQueryCache();
+    const unsubscribe = queryCache.subscribe((event) => {
+      // Check if the event is about the notifications query
+      if (event.query && Array.isArray(event.query.queryKey) && event.query.queryKey[0] === 'notifications') {
+        const data = queryClient.getQueryData<Notification[]>(['notifications']) || [];
+        setNotifications(data);
+      }
+    });
+    
+    // Initial fetch
+    const initialData = queryClient.getQueryData<Notification[]>(['notifications']) || [];
+    setNotifications(initialData);
+    
+    return unsubscribe;
+  }, [queryClient]);
+
+  const removeNotification = (id: string) => {
+    queryClient.setQueryData<Notification[]>(['notifications'], (old = []) => 
+      old.filter(n => n.id !== id)
+    );
+  };
 
   if (notifications.length === 0) return null;
 
