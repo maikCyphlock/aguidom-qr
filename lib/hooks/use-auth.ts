@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -51,36 +51,45 @@ export function useAuthSync() {
   const supabase = createClient();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isProcessingRef = useRef(false);
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Invalidate any queries that depend on auth state
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+    const handleAuthChange = async (event: string, session: { user: AuthUserData | null } | null) => {
+      // Prevent multiple simultaneous auth state changes
+      if (isProcessingRef.current) return;
+      isProcessingRef.current = true;
       
-      // Handle auth state changes
-      if (event === 'SIGNED_IN' && session?.user) {
-        try {
+      try {
+        // Only invalidate queries if the auth state actually changed
+        if (['SIGNED_IN', 'SIGNED_OUT', 'USER_UPDATED'].includes(event)) {
+          await queryClient.invalidateQueries({ 
+            queryKey: ['user'],
+            refetchType: 'active',
+          });
+        }
+
+        if (event === 'SIGNED_IN' && session?.user) {
           await syncUserWithDatabase(session.user as AuthUserData);
           router.refresh();
-        } catch (error) {
-          console.error('Error during sign in:', error);
+        } else if (event === 'SIGNED_OUT') {
+          // Clear sensitive data from the cache
+          queryClient.clear();
+          router.refresh();
+        } else if (event === 'USER_UPDATED' && session?.user) {
+          // Only invalidate profile if user data was updated
+          queryClient.invalidateQueries({ 
+            queryKey: ['userProfile'],
+            refetchType: 'active',
+          });
         }
-      } else if (event === 'SIGNED_OUT') {
-        // Clear any sensitive data from the cache
-        queryClient.clear();
-        router.refresh();
-} else if (event === 'USER_UPDATED' && session?.user) {
-        // Sync user data when profile is updated
-        try {
-          await syncUserWithDatabase(session.user as AuthUserData);
-          queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-        } catch (error) {
-          console.error('Error updating user:', error);
-        }
+      } catch (error) {
+        console.error('Error in auth state change handler:', error);
+      } finally {
+        isProcessingRef.current = false;
       }
-    });
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange);
 
     return () => {
       subscription.unsubscribe();
@@ -90,6 +99,7 @@ export function useAuthSync() {
 
 export function useUser() {
   const supabase = createClient();
+  const queryClient = useQueryClient();
   
   return useQuery({
     queryKey: ['user'],
@@ -97,10 +107,14 @@ export function useUser() {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) throw error;
       
-      // Sync user data with database
+      // Only sync user data if we don't have it yet
       if (user) {
         try {
-          await syncUserWithDatabase(user);
+          // Use a separate query to check if we need to sync
+          const needsSync = !queryClient.getQueryData(['userProfile', user.id]);
+          if (needsSync) {
+            await syncUserWithDatabase(user);
+          }
         } catch (error) {
           console.error('Error syncing user data:', error);
         }
@@ -108,30 +122,34 @@ export function useUser() {
       
       return user;
     },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 }
 
 export function useUserProfile() {
-
   const { data: user } = useUser();
   
   return useQuery({
     queryKey: ['userProfile', user?.id],
     queryFn: async () => {   
-      const response = await fetch('/api/users/sync', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(user),
-    });
+      if (!user?.id) return null;
+      
+      const response = await fetch(`/api/users/profile?id=${user.id}`, {
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to sync user data');
-    }
-      return (await response.json()) as UserProfile;
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+      return response.json();
     },
-    enabled: !!user,
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 }
 
