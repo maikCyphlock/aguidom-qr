@@ -28,7 +28,7 @@ export default function DashboardSidebar({
   const router = useRouter();
   const { data: user, isLoading: isUserLoading } = useUser();
   const { data: profile, isLoading: isProfileLoading } = useUserProfile();
-  console.log({profile})
+
   const signOut = useSignOut();
   
   // Handle loading and error states
@@ -107,8 +107,9 @@ export default function DashboardSidebar({
 						variant="destructive"
 						className="w-full justify-start"
 						onClick={async () => {
-						  await signOut();
-						  router.push('/auth/login');
+						   router.push('/auth/logout?redirrect="/"');
+		
+						 
 						}}
 					>
 						<LogOut className="w-4 h-4 mr-2" />

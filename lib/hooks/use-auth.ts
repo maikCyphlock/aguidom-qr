@@ -94,7 +94,7 @@ export function useAuthSync() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [queryClient, router, supabase.auth]);
+  }, [queryClient, router, supabase.auth.onAuthStateChange]);
 }
 
 export function useUser() {
@@ -199,11 +199,10 @@ export function useSignInWithGoogle() {
 export function useSignOut() {
   const supabase = createClient();
   const queryClient = useQueryClient();
-  const router = useRouter();
+
   
   return async () => {
     await supabase.auth.signOut();
     await queryClient.clear();
-    router.refresh();
   };
 }
