@@ -14,7 +14,7 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { LogOut, User, Settings, Calendar } from "lucide-react";
+import { LogOut, User, Settings, Calendar, UserCog } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { useUser, useUserProfile } from "@/lib/hooks/use-auth";
@@ -96,6 +96,23 @@ export default function DashboardSidebar({
 									Mi club
 								</Button>
 							</Link>
+							{
+								profile.role === 'admin' &&
+								<>
+								<Link href="/club/create">
+									<Button variant="ghost" className="w-full justify-start">
+										<UserCog className="w-4 h-4 mr-2" />
+										Crear un club
+									</Button>
+								</Link>
+								<Link href="/club/add-user">
+									<Button variant="ghost" className="w-full justify-start">
+										<UserCog className="w-4 h-4 mr-2" />
+										Añadir usuarios
+									</Button>
+								</Link>
+								</>
+							}
 						</SidebarGroupContent>
 					</SidebarGroup>
 				</SidebarContent>
