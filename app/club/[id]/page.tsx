@@ -1,10 +1,10 @@
-import { redirect, notFound } from "next/navigation";
+import { desc, eq } from "drizzle-orm";
+import { notFound, redirect } from "next/navigation";
+import DashboardSidebar from "@/components/dashboard";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { attendance, users, clubs } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { attendance, clubs, users } from "@/lib/db/schema";
 import ClubClient, { type AttendanceItem, type Member } from "../client";
-import DashboardSidebar from "@/components/dashboard";
 
 export default async function ClubAdminPage({
 	params,
@@ -17,8 +17,8 @@ export default async function ClubAdminPage({
 	if (shouldRedirect || !userFromDb) redirect("/");
 
 	// Only admins of this club can access
-	const isAdmin = (userFromDb.role ?? "user").toLowerCase() === "admin";
-	if (!isAdmin) redirect("/");
+	//const isAdmin = (userFromDb.role ?? "user").toLowerCase() === "admin";
+	//if (!isAdmin) redirect("/");
 	if (!userFromDb.clubId || userFromDb.clubId !== id) redirect("/");
 
 	const club = await db.select().from(clubs).where(eq(clubs.id, id)).get();
