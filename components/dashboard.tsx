@@ -20,6 +20,10 @@ import { useAuthStore } from "@/lib/stores";
 import Link from "next/link";
 import { useUserProfileQuery } from "@/lib/hooks/use-user-profile-query";
 
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+
+
 
 export default function DashboardSidebar({
 	children,
@@ -27,7 +31,9 @@ export default function DashboardSidebar({
 }: {
 	children: React.ReactNode;	
 }) {
-	const { user, signOut,  } = useAuthStore();
+	const router = useRouter()
+	const supabase = createClient()
+	const { user, signOut  } = useAuthStore();
 	const {data: profile } = useUserProfileQuery()
 	return (
 		<SidebarProvider>
@@ -91,10 +97,7 @@ export default function DashboardSidebar({
 						type="button"
 						variant="destructive"
 						className="w-full justify-start"
-						onClick={async() => {
-							await signOut()
-							window.location.reload()
-						}}
+						onClick={() => signOut()}
 					>
 						<LogOut className="w-4 h-4 mr-2" />
 						Cerrar sesión

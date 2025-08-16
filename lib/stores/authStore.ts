@@ -108,30 +108,8 @@ export const useAuthStore = create<AuthStoreWithGetters>()(
       },
 
       signOut: async () => {
-        console.log('signOut')
-        try {
-          set({ isLoading: true, error: null })
-          const { error } = await supabase.auth.signOut({ scope:'global'})
-          
-          if (error) throw error
-          
-          set({ 
-            user: null, 
-            session: null,
-            isLoading: false 
-          })
-          // Forzar limpieza de caché de perfil en React Query (si existe provider)
-          try {
-            const { QueryClient } = await import('@tanstack/react-query')
-            const client = new QueryClient()
-            client.removeQueries({ queryKey: ['user-profile'] })
-          } catch {}
-        } catch (error) {
-          set({ 
-            error: error instanceof Error ? error.message : 'Error al cerrar sesión',
-            isLoading: false 
-          })
-        }
+       await supabase.auth.signOut()
+       set({user: null, session: null})
       },
 
       resetPassword: async (email: string) => {

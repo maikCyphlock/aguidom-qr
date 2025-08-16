@@ -1,51 +1,53 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useAuthStore } from '@/lib/stores/authStore'
 import { createClient } from '@/lib/supabase/client'
 import { useQueryClient } from '@tanstack/react-query'
+import type { User } from '@supabase/supabase-js'
 
 const supabase = createClient()
+const USER_PROFILE_QUERY = ['user-profile']
 
+/**
+ * Hook to sync authentication state with the application
+ * Manages user state and updates related queries
+ */
 export function useAuthSync() {
-  const { user, session, setUser, setSession } = useAuthStore()
+  const { user, setUser } = useAuthStore()
   const queryClient = useQueryClient()
 
-  useEffect(() => {
-    // Obtener usuario autenticado inicial de forma segura
-    const getInitialUser = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (error) return
-      if (user) {
-        setUser(user)
-        setSession((await supabase.auth.getSession()).data.session ?? null)
-        await queryClient.invalidateQueries({ queryKey: ['user-profile'] })
-      } else {
-        setUser(null)
-        setSession(null)
-        await queryClient.removeQueries({ queryKey: ['user-profile'] })
-      }
+  // Update user profile queries based on auth state
+  const updateAuthState = useCallback(async (user: User | null) => {
+    if (user) {
+      setUser(user)
+      await queryClient.invalidateQueries({ queryKey: USER_PROFILE_QUERY })
+    } else {
+      setUser(null)
+      await queryClient.removeQueries({ queryKey: USER_PROFILE_QUERY })
     }
+  }, [queryClient, setUser])
 
-    getInitialUser()
+  // Handle initial auth state
+  const initializeAuth = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    await updateAuthState(user || null)
+  }, [updateAuthState])
 
-    // Escuchar cambios en la autenticación
+  useEffect(() => {
+    // Initial auth setup
+    initializeAuth()
+
+    // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async () => {
         const { data: { user } } = await supabase.auth.getUser()
-        setSession(session)
-        if (user) {
-          setUser(user)
-          await queryClient.invalidateQueries({ queryKey: ['user-profile'] })
-        } else {
-          setUser(null)
-          await queryClient.removeQueries({ queryKey: ['user-profile'] })
-        }
+        await updateAuthState(user || null)
       }
     )
 
-    return () => subscription.unsubscribe()
-  }, [setUser, setSession, queryClient])
+    return () => {
+      subscription?.unsubscribe()
+    }
+  }, [initializeAuth, updateAuthState])
 
-  // React Query maneja refetch en focus/online por configuración de la query
-
-  return { user, session }
+  return { user }
 }
