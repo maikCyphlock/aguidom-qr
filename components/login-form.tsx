@@ -50,7 +50,7 @@ export function LoginForm({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<"div">) {
-	const [ _,setError] = useState<string | null>(null);
+	const [ ,setError] = useState<string | null>(null);
 	const router = useRouter();
 	const searchParams = useSearchParams();
 
