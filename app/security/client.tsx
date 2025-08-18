@@ -31,35 +31,54 @@ export default function SecurityClient() {
 		setScannerActive(false);
 		setVerificationResult(null);
 		try {
-			const response = await fetch("/api/verify-qr", {
+			// First verify the QR code
+			const verifyResponse = await fetch("/api/verify-qr", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({ token: decodedText }),
 			});
-			const result = await response.json();
 
-			if (response.ok) {
-				setVerificationResult({
-					success: true,
-					message: result.message,
-					participant: { name: result.name, club: result.club },
-				});
-			} else {
-				setVerificationResult({
-					success: false,
-					message: result.error || "Error de verificación",
-				});
-			}
-		} catch (error) {
-			console.error("Error al verificar el código QR:", error);
-			setVerificationResult({
-				success: false,
-				message: "Error de red o del servidor",
-			});
-		}
-	};
+      if (!verifyResponse.ok) {
+        const error = await verifyResponse.json();
+        throw new Error(error.error || "Error al verificar el código QR");
+      }
+
+      const userData = await verifyResponse.json();
+      
+      // Register the stadium entry
+      const response = await fetch("/api/security", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          userId: userData.userId,
+          description: "Entrada al estadio"
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        setVerificationResult({
+          success: true,
+          message: result.message,
+          participant: { 
+            name: userData.name || result.data.userId, 
+            club: userData.club || "Estadio" 
+          },
+        });
+      } else {
+        throw new Error(result.error || "Error al registrar la entrada");
+      }
+    } catch (error) {
+      console.error("Error al procesar el código QR:", error);
+      setVerificationResult({
+        success: false,
+        message: error instanceof Error ? error.message : "Error de red o del servidor",
+      });
+    }
+  };
 
 	const handleManualSearch = async () => {
 		if (!manualSearchQuery.trim()) return;
@@ -79,21 +98,37 @@ export default function SecurityClient() {
 
 	const handleManualRegistration = async (userId: string) => {
 		try {
-			const response = await fetch("/api/attendance", {
+			const response = await fetch("/api/security", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ userId }),
+				body: JSON.stringify({ 
+          userId,
+          description: "Entrada al estadio"
+        }),
 			});
-			const result = await response.json();
-			setVerificationResult({
-				success: response.ok,
-				message: result.message || result.error,
-			});
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        setVerificationResult({
+          success: true,
+          message: result.message,
+          participant: {
+            name: result.data.userId, // We'll update this if we have user info in the response
+            club: "Estadio"
+          }
+        });
+      } else {
+        setVerificationResult({
+          success: false,
+          message: result.error || "Error al registrar la entrada"
+        });
+      }
 		} catch (error) {
-			console.error("Error al registrar la entrada:", error);
+			console.error("Error al registrar la entrada al estadio:", error);
 			setVerificationResult({
 				success: false,
-				message: "Error al registrar la entrada",
+				message: "Error de conexión con el servidor",
 			});
 		}
 	};
