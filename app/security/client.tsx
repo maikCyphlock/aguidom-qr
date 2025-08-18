@@ -117,7 +117,6 @@ export default function SecurityClient() {
 							<div className="w-full max-w-xs mx-auto">
 								<Html5QrcodePlugin
 									fps={10}
-									
 									disableFlip={false}
 									qrCodeSuccessCallback={handleNewScanResult}
 								/>

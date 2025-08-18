@@ -1,6 +1,10 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -9,12 +13,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useSignIn, useSignInWithGoogle, useUser } from "@/lib/hooks/use-auth";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/lib/utils/notifications";
 
 
@@ -51,48 +51,56 @@ export function LoginForm({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<"div">) {
+	// biome-ignore lint/correctness/noUnusedVariables: to use later
 	const [form, setForm] = useState({ email: "", password: "" });
+	// biome-ignore lint/correctness/noUnusedVariables: to use later
 	const [showPassword, setShowPassword] = useState(false);
 
+	// biome-ignore lint/correctness/noUnusedVariables: to use later
 	const [error, setError] = useState<string | null>(null);
+	// biome-ignore lint/correctness/noUnusedVariables: to use later
 	const router = useRouter();
+	// biome-ignore lint/correctness/noUnusedVariables: to use later
 	const searchParams = useSearchParams();
+	// biome-ignore lint/correctness/noUnusedVariables: to use later
 	const cardRef = useRef<HTMLDivElement>(null);
+	// biome-ignore lint/correctness/noUnusedVariables: to use later
 	const { data: user } = useUser();
+	// biome-ignore lint/correctness/noUnusedVariables: to use later
 	const signIn = useSignIn();
 	const signInWithGoogle = useSignInWithGoogle();
 	const toast = useToast();
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-	// Handle redirect after successful login
-	useEffect(() => {
-		if (user) {
-			const redirectTo = searchParams.get('redirect') || '/';
+
+	 useEffect(() => {
+	 	if (user) {
+	 		const redirectTo = searchParams.get('redirect') || '/';
 	
-			router.push(redirectTo);
-		}
-	}, [user, router, searchParams]);
+	 		router.push(redirectTo);
+	 	}
+	 }, [user, router, searchParams]);
 
-	const handleChange =
-		(field: "email" | "password") => (e: React.ChangeEvent<HTMLInputElement>) =>
-			setForm({ ...form, [field]: e.target.value });
+	// const handleChange =
+	// 	(field: "email" | "password") => (e: React.ChangeEvent<HTMLInputElement>) =>
+	// 		setForm({ ...form, [field]: e.target.value });
 
-	const handleLogin = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setError(null);
+	// const handleLogin = async (e: React.FormEvent) => {
+	// 	e.preventDefault();
+	// 	setError(null);
 		
-		try {
-			const { error } = await signIn(form.email, form.password);
-			if (error) {
-				setError(error.message || 'Error al iniciar sesión');
-			} else {
-				toast('¡Bienvenido!', { type: 'success' });
-			}
-		} catch (err) {
-			console.error('Error al iniciar sesión:', err);
-			setError('Ocurrió un error al intentar iniciar sesión');
-		}
-	};
+	// 	try {
+	// 		const { error } = await signIn(form.email, form.password);
+	// 		if (error) {
+	// 			setError(error.message || 'Error al iniciar sesión');
+	// 		} else {
+	// 			toast('¡Bienvenido!', { type: 'success' });
+	// 		}
+	// 	} catch (err) {
+	// 		console.error('Error al iniciar sesión:', err);
+	// 		setError('Ocurrió un error al intentar iniciar sesión');
+	// 	}
+	// };
 
 	const handleGoogleSignIn = async (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -132,7 +140,7 @@ export function LoginForm({
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<form onSubmit={handleLogin} className="space-y-4">
+					{/* <form onSubmit={handleLogin} className="space-y-4">
 						<div className="grid gap-2">
 							<Label htmlFor="email">Correo electrónico</Label>
 							<Input
@@ -186,9 +194,9 @@ export function LoginForm({
 						<Button type="submit" className="w-full" >
 							Ingresar 
 						</Button>
-					</form>
+					</form> */}
 
-					<div className="relative my-4">
+					{/* <div className="relative my-4">
 						<div className="absolute inset-0 flex items-center">
 							<span className="w-full border-t" />
 						</div>
@@ -197,13 +205,12 @@ export function LoginForm({
 								O continuar con
 							</span>
 						</div>
-					</div>
+					</div> */}
 
 					<Button
 						variant="outline"
 						className="w-full"
 						onClick={handleGoogleSignIn}
-
 					>
 						{isGoogleLoading ? (
 						  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -213,7 +220,7 @@ export function LoginForm({
 						{isGoogleLoading ? 'Iniciando sesión...' : 'Google'}
 					</Button>
 
-					<p className="mt-4 text-sm text-center text-muted-foreground">
+					{/* <p className="mt-4 text-sm text-center text-muted-foreground">
 						¿No tienes cuenta?{" "}
 						<a
 							href="/auth/sign-up"
@@ -221,7 +228,7 @@ export function LoginForm({
 						>
 							Regístrate
 						</a>
-					</p>
+					</p> */}
 				</CardContent>
 			</Card>
 		</div>

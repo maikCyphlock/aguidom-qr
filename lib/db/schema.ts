@@ -53,6 +53,7 @@ export const trainings = sqliteTable("trainings", {
 
 export const attendance = sqliteTable("attendance", {
 	attendanceId: text("attendance_id").primaryKey(),
+	description: text("description"),
 	userId: text("user_id"),
 	clubId: text("club_id"),
 	trainingId: text("training_id"),
