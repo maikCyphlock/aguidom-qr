@@ -1,8 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-// import { Input } from "@/components/ui/input";
-// import { Label } from "@/components/ui/label";
+
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useSignIn, useSignInWithGoogle, useUser } from "@/lib/hooks/use-auth";
+import { useSignInWithGoogle, useUser } from "@/lib/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/lib/utils/notifications";
 
@@ -51,23 +50,14 @@ export function LoginForm({
 	className,
 	...props
 }: React.ComponentPropsWithoutRef<"div">) {
-	// biome-ignore lint/correctness/noUnusedVariables: to use later
-	const [form, setForm] = useState({ email: "", password: "" });
-	// biome-ignore lint/correctness/noUnusedVariables: to use later
-	const [showPassword, setShowPassword] = useState(false);
-
-	// biome-ignore lint/correctness/noUnusedVariables: to use later
-	const [error, setError] = useState<string | null>(null);
-	// biome-ignore lint/correctness/noUnusedVariables: to use later
+	const [ _,setError] = useState<string | null>(null);
 	const router = useRouter();
-	// biome-ignore lint/correctness/noUnusedVariables: to use later
 	const searchParams = useSearchParams();
-	// biome-ignore lint/correctness/noUnusedVariables: to use later
+
 	const cardRef = useRef<HTMLDivElement>(null);
-	// biome-ignore lint/correctness/noUnusedVariables: to use later
+
 	const { data: user } = useUser();
-	// biome-ignore lint/correctness/noUnusedVariables: to use later
-	const signIn = useSignIn();
+
 	const signInWithGoogle = useSignInWithGoogle();
 	const toast = useToast();
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
